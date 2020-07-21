@@ -109,7 +109,7 @@ public class StageManager : MonoBehaviour
 
     private void NewItem(ItemChangeModel change)
     {
-        var component = _itemPrefabs.ContainsKey("CubePrefab") ? _itemPrefabs["CubePrefab"] : null;
+        var component = _itemPrefabs.ContainsKey("LampPrefab") ? _itemPrefabs["LampPrefab"] : null;
 
         // no component defined for this item
         if (component == null)
