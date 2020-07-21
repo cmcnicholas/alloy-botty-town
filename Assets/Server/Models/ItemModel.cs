@@ -1,18 +1,18 @@
-﻿namespace Assets.Server.Models
+﻿using GeoJSON.Net.Geometry;
+
+namespace Assets.Server.Models
 {
     public class ItemModel
     {
         public string ItemId { get; }
         public string DesignCode { get; }
-        public float WorldX { get; }
-        public float WorldZ { get; }
+        public IGeometryObject Geometry { get; set; }
 
-        public ItemModel(string itemId, string designCode, float worldX, float worldZ)
+        public ItemModel(string itemId, string designCode, IGeometryObject geometry)
         {
             ItemId = itemId;
             DesignCode = designCode;
-            WorldX = worldX;
-            WorldZ = worldZ;
+            Geometry = geometry;
         }
     }
 }

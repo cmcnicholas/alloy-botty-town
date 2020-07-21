@@ -2,8 +2,6 @@
 using Assets.Server.Mapper;
 using Assets.Server.Models;
 using Assets.Server.Projection;
-using GeoJSON.Net;
-using GeoJSON.Net.Geometry;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,13 +29,13 @@ public class StageManager : MonoBehaviour
 
     private IEnumerator CoroutineDiff()
     {
-        // setup the prefab mapper (maps items to models of stuff)
-        var itemPrefabMapper = new ItemPrefabMapper();
-        itemPrefabMapper.Initialise(gameObject, ItemPrefab);
-
         // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
         var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(CentreOfWorldLat, CentreOfWorldLon);
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
+
+        // setup the prefab mapper (maps items to models of stuff)
+        var itemToGameObjectFactory = new ItemToGameObjectFactory();
+        itemToGameObjectFactory.Initialise(gameObject, stageCoordinateProjector, ItemPrefab);
 
         // keep track of what we have loaded
         var itemIdsLoaded = new HashSet<string>();
@@ -45,14 +43,14 @@ public class StageManager : MonoBehaviour
         while (true)
         {
             // recursive coroutines start here
-            yield return StartCoroutine(CoroutineDiffPage(1, itemPrefabMapper, stageCoordinateProjector, itemIdsLoaded));
+            yield return StartCoroutine(CoroutineDiffPage(1, itemToGameObjectFactory, itemIdsLoaded));
 
             Debug.Log("Finished loading assets, waiting 5 seconds...");
             yield return new WaitForSeconds(5.0f);
         }
     }
 
-    private IEnumerator CoroutineDiffPage(int page, ItemPrefabMapper itemPrefabMapper, StageCoordProjection stageCoordinateProjector, ISet<string> itemIdsLoaded)
+    private IEnumerator CoroutineDiffPage(int page, ItemToGameObjectFactory itemToGameObjectFactory, ISet<string> itemIdsLoaded)
     {
         string aqs = "{ \"type\": \"Query\", \"properties\": { \"dodiCode\": \"designInterfaces_assetHeads\", \"attributes\": [\"attributes_itemsGeometry\", \"attributes_itemsTitle\", \"attributes_itemsSubtitle\"] } }";
         var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs, page);
@@ -78,42 +76,24 @@ public class StageManager : MonoBehaviour
                     continue;
                 }
 
+                // create item to keep and manage
                 var geometry = jsonItem.Attributes.First(a => a.AttributeCode == "attributes_itemsGeometry").ValueAsGeoJson();
-                if (geometry == null)
-                {
-                    continue;
-                }
+                var item = new ItemModel(jsonItem.ItemId, jsonItem.DesignCode, geometry);
 
-                if (geometry.Type == GeoJSONObjectType.Point)
-                {
-                    var itemLocation = (geometry as Point).Coordinates;
-                    var itemMetres = WebMercatorProjection.LatLonToMeters(itemLocation.Latitude, itemLocation.Longitude);
-                    var itemStageCoords = stageCoordinateProjector.MetresToStageCoordinate(itemMetres);
+                // make the game object for the item
+                itemToGameObjectFactory.GetGameObjectForItem(item);
 
-                    if (itemStageCoords == null)
-                    {
-                        Debug.Log("Item outside of map " + jsonItem.ItemId);
-                        continue;
-                    }
+                // indicate we loaded
+                itemIdsLoaded.Add(item.ItemId);
 
-                    // create item to keep and manage
-                    var item = new ItemModel(jsonItem.ItemId, jsonItem.DesignCode, itemStageCoords[0], itemStageCoords[1]);
-
-                    // map the item to a prefab (will add to the screen)
-                    itemPrefabMapper.ItemToPrefab(item);
-
-                    // indicate we loaded
-                    itemIdsLoaded.Add(item.ItemId);
-
-                    // yield and await more work
-                    yield return null;
-                }
+                // yield and await more work
+                yield return null;
             }
 
             // if we have more pages, go get them
             if (aqsClient.Response.TotalPages > page)
             {
-                yield return StartCoroutine(CoroutineDiffPage(++page, itemPrefabMapper, stageCoordinateProjector, itemIdsLoaded));
+                yield return StartCoroutine(CoroutineDiffPage(++page, itemToGameObjectFactory, itemIdsLoaded));
             }
         }
     }
