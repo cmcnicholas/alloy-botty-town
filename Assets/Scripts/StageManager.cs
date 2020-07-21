@@ -1,4 +1,5 @@
 ﻿using Assets.Server.ApiModels;
+using Assets.Server.Mapper;
 using Assets.Server.Models;
 using Assets.Server.Projection;
 using GeoJSON.Net;
@@ -17,18 +18,10 @@ public class StageManager : MonoBehaviour
     public float CentreOfWorldLat;
     public float CentreOfWorldLon;
     public float MapSize;
-    private IDictionary<string, GameObject> _itemPrefabs;
 
     // Start is called before the first frame update
     void Start()
     {
-        // enumerate the prefab game objects
-        _itemPrefabs = new Dictionary<string, GameObject>();
-        foreach (Transform child in ItemPrefab.transform)
-        {
-            _itemPrefabs.Add(child.name, child.gameObject);
-        }
-        
         StartCoroutine(CoroutineDiff());
     }
 
@@ -39,9 +32,15 @@ public class StageManager : MonoBehaviour
 
     private IEnumerator CoroutineDiff()
     {
+        // setup the prefab mapper (maps items to models of stuff)
+        var itemPrefabMapper = new ItemPrefabMapper();
+        itemPrefabMapper.Initialise(gameObject, ItemPrefab);
+
+        // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
         var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(CentreOfWorldLat, CentreOfWorldLon);
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
 
+        // keep track of what we have loaded
         var itemIdsLoaded = new HashSet<string>();
 
         while (true)
@@ -93,9 +92,16 @@ public class StageManager : MonoBehaviour
                                 continue;
                             }
 
-                            var item = new ItemModel(jsonItem.ItemId, itemStageCoords[0], itemStageCoords[1]);
-                            NewItem(new ItemChangeModel(item, ItemChangeType.New));
-                            itemIdsLoaded.Add(item.ItemId); // indicate we loaded
+                            // create item to keep and manage
+                            var item = new ItemModel(jsonItem.ItemId, jsonItem.DesignCode, itemStageCoords[0], itemStageCoords[1]);
+
+                            // map the item to a prefab (will add to the screen)
+                            itemPrefabMapper.ItemToPrefab(item);
+
+                            // indicate we loaded
+                            itemIdsLoaded.Add(item.ItemId);
+
+                            // yield and await more work
                             yield return null;
                         }
                     }
@@ -105,20 +111,5 @@ public class StageManager : MonoBehaviour
                 }
             }
         }
-    }
-
-    private void NewItem(ItemChangeModel change)
-    {
-        var component = _itemPrefabs.ContainsKey("LampPrefab") ? _itemPrefabs["LampPrefab"] : null;
-
-        // no component defined for this item
-        if (component == null)
-        {
-            return;
-        }
-        
-        var newComponent = Instantiate(component, new Vector3(change.Item.WorldX, 0, change.Item.WorldZ), 
-            new Quaternion(), gameObject.transform);
-        newComponent.name = "gameObjectItems_" + change.Item.ItemId;
     }
 }
