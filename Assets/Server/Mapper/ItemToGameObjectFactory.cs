@@ -25,6 +25,7 @@ namespace Assets.Server.Mapper
             var mappers = new Dictionary<GeoJSONObjectType, ItemToGameObjectMapperBase>();
             mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabs);
             mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
+            mappers[GeoJSONObjectType.Polygon] = new PolygonToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
 
             return new ItemToGameObjectFactory(mappers);
         }
