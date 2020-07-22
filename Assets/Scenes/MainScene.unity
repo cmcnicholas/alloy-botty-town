@@ -146,13 +146,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 114699666}
-  m_LocalRotation: {x: 0.5735764, y: 0, z: 0, w: 0.8191521}
-  m_LocalPosition: {x: -12835, y: 34233, z: -34882}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 25.093}
+  m_LocalScale: {x: 0.00049999997, y: 0.00049999997, z: 0.0004999999}
   m_Children: []
-  m_Father: {fileID: 1372376836}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 70, y: 0, z: 0}
+  m_Father: {fileID: 633734042}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!108 &114699668
 Light:
   m_ObjectHideFlags: 0
@@ -580,6 +580,12 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1454135980}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &633734042 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400004, guid: d0223f77114284b47a0e8b317e71e4dc,
+    type: 3}
+  m_PrefabInstance: {fileID: 1454135980}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &807535380 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100008, guid: d0223f77114284b47a0e8b317e71e4dc,
@@ -785,8 +791,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -2.8464098, y: -0.7074127, z: -2.1707873}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 114699667}
+  m_Children: []
   m_Father: {fileID: 390434819}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1443,7 +1448,7 @@ MonoBehaviour:
   Sun: {fileID: 633734041}
   Moon: {fileID: 807535380}
   Stars: {fileID: 1777424231}
-  Light: {fileID: 0}
+  Light: {fileID: 114699666}
   DayNightCycleSeconds: 60
 --- !u!1 &1951972963 stripped
 GameObject:
