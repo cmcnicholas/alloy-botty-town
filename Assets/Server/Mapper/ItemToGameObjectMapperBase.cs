@@ -4,9 +4,20 @@ using UnityEngine;
 
 namespace Assets.Server.Mapper
 {
+    /// <summary>
+    /// base implementation for the item to game object mapper,
+    /// takes an item and makes a game object for it
+    /// </summary>
     public abstract class ItemToGameObjectMapperBase
     {
+        /// <summary>
+        /// the stage to host the game objects on (the container)
+        /// </summary>
         protected GameObject Stage { get; private set; }
+
+        /// <summary>
+        /// the coordinate projector for the stage, use to convert coordinates to game world
+        /// </summary>
         protected StageCoordProjection StageCoordProjector { get; private set; }
 
         public ItemToGameObjectMapperBase(GameObject stage, StageCoordProjection stageCoordProjector)
@@ -15,6 +26,9 @@ namespace Assets.Server.Mapper
             StageCoordProjector = stageCoordProjector;
         }
 
-        public abstract GameObject GetGameObjectForItem(ItemModel item);
+        /// <summary>
+        /// creates a game object for an item
+        /// </summary>
+        public abstract GameObject CreateGameObjectForItem(ItemModel item);
     }
 }

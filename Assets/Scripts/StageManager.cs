@@ -10,11 +10,12 @@ using UnityEngine;
 public class StageManager : MonoBehaviour
 {
     public GameObject ItemPrefab;
+    public Material RoadMaterial;
     public float CentreOfWorldLat;
     public float CentreOfWorldLon;
     public float MapSize;
-    private string ApiUrl = "https://api.labs.alloyapp.io";
-    private string ApiKey = "e2c58fef-c0ce-4e15-883d-31fd6edba206";
+    public string ApiUrl;
+    public string ApiKey;
 
     // Start is called before the first frame update
     void Start()
@@ -34,8 +35,7 @@ public class StageManager : MonoBehaviour
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
 
         // setup the prefab mapper (maps items to models of stuff)
-        var itemToGameObjectFactory = new ItemToGameObjectFactory();
-        itemToGameObjectFactory.Initialise(gameObject, stageCoordinateProjector, ItemPrefab);
+        var itemToGameObjectFactory = ItemToGameObjectFactory.Create(gameObject, stageCoordinateProjector, ItemPrefab, RoadMaterial);
 
         // keep track of what we have loaded
         var itemIdsLoaded = new HashSet<string>();
@@ -81,7 +81,7 @@ public class StageManager : MonoBehaviour
                 var item = new ItemModel(jsonItem.ItemId, jsonItem.DesignCode, geometry);
 
                 // make the game object for the item
-                itemToGameObjectFactory.GetGameObjectForItem(item);
+                itemToGameObjectFactory.CreateGameObjectForItem(item);
 
                 // indicate we loaded
                 itemIdsLoaded.Add(item.ItemId);

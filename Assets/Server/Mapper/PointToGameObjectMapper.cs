@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Assets.Server.Mapper
 {
+    /// <summary>
+    /// implementation to create game objects for point items
+    /// </summary>
     public class PointToGameObjectMapper : ItemToGameObjectMapperBase
     {
         private const string Tree01Prefab = "Tree01Prefab";
@@ -19,6 +22,7 @@ namespace Assets.Server.Mapper
         private const string Trash01Prefab = "Trash01Prefab";
         private const string Trash02Prefab = "Trash02Prefab";
         private const string Sign01Prefab = "Sign01Prefab";
+        private const string House01Prefab = "House01Prefab";
 
         private IDictionary<string, GameObject> _prefabs;
 
@@ -27,7 +31,7 @@ namespace Assets.Server.Mapper
             _prefabs = prefabs;
         }
 
-        public override GameObject GetGameObjectForItem(ItemModel item)
+        public override GameObject CreateGameObjectForItem(ItemModel item)
         {
             // find the prefab model we have for this item
             string prefabName = PrefabNameForItem(item);
@@ -76,7 +80,11 @@ namespace Assets.Server.Mapper
                 case "designs_feederPillars":
                     return Trash01Prefab; // TODO something better here, more money $$$
                 case "designs_wasteContainers":
-                    return "Trash01Prefab";
+                    return Trash01Prefab;
+                case "designs_trees":
+                    return Tree01Prefab; // TODO consistently randomize?
+                case "designs_nlpgPremises":
+                    return House01Prefab;
                 default:
                     return "DefaultPrefab"; // no model
             }

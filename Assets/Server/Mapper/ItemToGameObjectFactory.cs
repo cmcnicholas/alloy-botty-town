@@ -8,9 +8,10 @@ namespace Assets.Server.Mapper
 {
     public class ItemToGameObjectFactory
     {
-        private IDictionary<GeoJSONObjectType, ItemToGameObjectMapperBase> _mappers = new Dictionary<GeoJSONObjectType, ItemToGameObjectMapperBase>();
-
-        public void Initialise(GameObject stage, StageCoordProjection stageCoordProjector, GameObject itemPrefabs)
+        /// <summary>
+        /// creates the factory, performing initialisation for the mappers
+        /// </summary>
+        public static ItemToGameObjectFactory Create(GameObject stage, StageCoordProjection stageCoordProjector, GameObject itemPrefabs, Material roadMaterial)
         {
             // enumerate the prefab game objects, we use an empty game object prefab to house several game objects
             // the name is the key we use to look them up and assign them to items e.g. street lights
@@ -20,12 +21,25 @@ namespace Assets.Server.Mapper
                 prefabs.Add(child.name, child.gameObject);
             }
 
-            // set the mappers
-            _mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabs);
-            _mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector);
+            // create the mappers
+            var mappers = new Dictionary<GeoJSONObjectType, ItemToGameObjectMapperBase>();
+            mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabs);
+            mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
+
+            return new ItemToGameObjectFactory(mappers);
         }
 
-        public GameObject GetGameObjectForItem(ItemModel item)
+        private IDictionary<GeoJSONObjectType, ItemToGameObjectMapperBase> _mappers;
+
+        private ItemToGameObjectFactory(IDictionary<GeoJSONObjectType, ItemToGameObjectMapperBase> mappers)
+        {
+            _mappers = mappers;
+        }
+        
+        /// <summary>
+        /// gets a game object for an item model
+        /// </summary>
+        public GameObject CreateGameObjectForItem(ItemModel item)
         {
             // do we have geom?
             if (item.Geometry == null)
@@ -40,7 +54,7 @@ namespace Assets.Server.Mapper
             }
 
             // go ahead and make some game object
-            var go = _mappers[item.Geometry.Type].GetGameObjectForItem(item);
+            var go = _mappers[item.Geometry.Type].CreateGameObjectForItem(item);
             if (go != null)
             {
                 go.name = "itemGameObjects_" + item.ItemId;
