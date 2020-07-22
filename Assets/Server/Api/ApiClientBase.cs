@@ -60,7 +60,7 @@ namespace Assets.Server.Api
                         }
                         catch (Exception e)
                         {
-                            Error = new Exception("Failed to parse http response, see inner exception", e);
+                            Error = new Exception($"Failed to parse http response as JSON: '{request.downloadHandler.text}', message: " + e.Message, e);
                         }
                     }
                 }
