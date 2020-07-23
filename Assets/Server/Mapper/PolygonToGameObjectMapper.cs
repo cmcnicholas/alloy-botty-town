@@ -94,6 +94,7 @@ namespace Assets.Server.Mapper
 
             // make a new game object, we will draw programatically
             var go = new GameObject();
+            go.transform.parent = Stage.transform;
 
             // make the filter including the mesh we made
             var filter = go.AddComponent<MeshFilter>();
@@ -102,6 +103,10 @@ namespace Assets.Server.Mapper
             // the way we render the poly
             var renderer = go.AddComponent<MeshRenderer>();
             renderer.material = _groundMaterial;
+
+            // use the above mesh for the mesh collider so we can interact with it e.g. look at
+            var collider = go.AddComponent<MeshCollider>();
+            collider.sharedMesh = mesh;
 
             return go;
         }

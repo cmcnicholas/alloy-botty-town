@@ -2,6 +2,7 @@
 using Assets.Server.Mapper;
 using Assets.Server.Models;
 using Assets.Server.Projection;
+using cakeslice;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
+    public GameObject Person;
     public GameObject ItemPrefab;
     public Material RoadMaterial;
     public float CentreOfWorldLat;
@@ -81,7 +83,10 @@ public class StageManager : MonoBehaviour
                 var item = new ItemModel(jsonItem.ItemId, jsonItem.DesignCode, geometry);
 
                 // make the game object for the item
-                itemToGameObjectFactory.CreateGameObjectForItem(item);
+                var go = itemToGameObjectFactory.CreateGameObjectForItem(item);
+
+                // add the asset highlighter (disabled)
+                go.AddComponent<Outline>().enabled = false;
 
                 // indicate we loaded
                 itemIdsLoaded.Add(item.ItemId);
