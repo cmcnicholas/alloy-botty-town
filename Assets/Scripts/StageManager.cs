@@ -13,6 +13,7 @@ public class StageManager : MonoBehaviour
     public GameObject Person;
     public GameObject ItemPrefab;
     public Material RoadMaterial;
+    public GameObject Fire;
     public float CentreOfWorldLat;
     public float CentreOfWorldLon;
     public float MapSize;
@@ -84,9 +85,6 @@ public class StageManager : MonoBehaviour
 
                 // make the game object for the item
                 var go = itemToGameObjectFactory.CreateGameObjectForItem(item);
-
-                // add the asset highlighter (disabled)
-                go.AddComponent<Outline>().enabled = false;
 
                 // indicate we loaded
                 itemIdsLoaded.Add(item.ItemId);

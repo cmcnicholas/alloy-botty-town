@@ -616,8 +616,8 @@ MonoBehaviour:
   sourceCamera: {fileID: 357543797}
   outlineCamera: {fileID: 869429407}
   outlineShaderMaterial: {fileID: 0}
-  renderTexture: {fileID: 1755329361}
-  extraRenderTexture: {fileID: 769936745}
+  renderTexture: {fileID: 1939117919}
+  extraRenderTexture: {fileID: 1757914167}
 --- !u!114 &357543795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -787,6 +787,7 @@ MonoBehaviour:
   ItemPrefab: {fileID: 6440963801182521093, guid: 0681c368749f037498fcf5a903e309ea,
     type: 3}
   RoadMaterial: {fileID: 2100000, guid: 4a6b575b59b2d22479631488b48d2b3b, type: 2}
+  Fire: {fileID: 100000, guid: 756d99540142b5e4a8d174e18a6310d9, type: 3}
   CentreOfWorldLat: 52.289135
   CentreOfWorldLon: -1.533704
   MapSize: 10000
@@ -993,41 +994,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1454135980}
   m_PrefabAsset: {fileID: 0}
---- !u!84 &769936745
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 1338
-  m_Height: 748
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 1
-  m_ColorFormat: 8
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &807535380 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100008, guid: d0223f77114284b47a0e8b317e71e4dc,
@@ -1098,7 +1064,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 0
   m_RenderingPath: 1
-  m_TargetTexture: {fileID: 1755329361}
+  m_TargetTexture: {fileID: 1939117919}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -3178,7 +3144,7 @@ MonoBehaviour:
   MinZ: -60000
   MaxZ: 42000
   Speed: 3
---- !u!84 &1755329361
+--- !u!84 &1757914167
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3404,6 +3370,41 @@ MonoBehaviour:
   Stars: {fileID: 1777424231}
   Light: {fileID: 114699666}
   DayNightCycleSeconds: 60
+--- !u!84 &1939117919
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 1338
+  m_Height: 748
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 1
+  m_ColorFormat: 8
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &1951972963 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: 5df7daeab707230409664c66ca47c5ad,
