@@ -9,7 +9,6 @@ using UnityEngine;
 
 public class SyncManager : MonoBehaviour
 {
-    public GameObject Person;
     public float CentreOfWorldLat;
     public float CentreOfWorldLon;
     public float MapSize;
