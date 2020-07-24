@@ -2,13 +2,12 @@
 using Assets.Server.Mapper;
 using Assets.Server.Models;
 using Assets.Server.Projection;
-using cakeslice;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class StageManager : MonoBehaviour
+public class SyncManager : MonoBehaviour
 {
     public GameObject Person;
     public GameObject ItemPrefab;
