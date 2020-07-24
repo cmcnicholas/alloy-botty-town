@@ -204,6 +204,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void GetInput(out float speed)
         {
+            // ### start craig hacky hack
+            if (_locked)
+            {
+                speed = 0.0f;
+                return;
+            }
+            // ### end craig hacky hack
+
             // Read input
             float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
             float vertical = CrossPlatformInputManager.GetAxis("Vertical");
@@ -256,5 +264,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
             body.AddForceAtPosition(m_CharacterController.velocity*0.1f, hit.point, ForceMode.Impulse);
         }
+
+        // ### start craig hacky hack
+        // craig was here, enables us to access cursor locking, no idea if this blows other stuff up
+        private bool _locked = false;
+
+        public void SetLocked(bool locked)
+        {
+            _locked = locked;
+
+            // we want to unlock the cursor so we can click stuff
+            m_MouseLook.SetCursorLock(!_locked);
+        }
+        // ### end craig hacky hack
     }
 }
