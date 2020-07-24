@@ -17,6 +17,8 @@ public class AssetController : MonoBehaviour
     private IList<GameObject> _fires;
     private IList<ParticleSystem> _fireParticleSystems;
 
+    private const string FirePrefab = "Prefabs/Fire";
+
     // Start is called before the first frame update
     void Start()
     {
@@ -71,7 +73,7 @@ public class AssetController : MonoBehaviour
         // make a fire object on the game object
         _fires = new List<GameObject>
         {
-            Instantiate(Resources.Load("Fire") as GameObject, gameObject.transform)
+            Instantiate(Resources.Load(FirePrefab) as GameObject, gameObject.transform)
         };
         _fireParticleSystems = new List<ParticleSystem>
         {
@@ -98,7 +100,7 @@ public class AssetController : MonoBehaviour
         _fireParticleSystems = new List<ParticleSystem>();
         foreach (var position in positions)
         {
-            var fire = Instantiate(Resources.Load("Fire") as GameObject, gameObject.transform);
+            var fire = Instantiate(Resources.Load(FirePrefab) as GameObject, gameObject.transform);
             var particleSystem = fire.GetComponent<ParticleSystem>();
 
             fire.transform.localPosition = position;

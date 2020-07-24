@@ -1,4 +1,4 @@
-the ItemPrefabs prefab in this directory contains all the "Assets" we want to use.
+the ItemPrefab prefab in this directory contains all the "Assets" we want to use.
 they are named specifically and referenced in code to associate dodi's to models.
 
 make sure you.

@@ -10,9 +10,6 @@ using UnityEngine;
 public class SyncManager : MonoBehaviour
 {
     public GameObject Person;
-    public GameObject ItemPrefab;
-    public Material RoadMaterial;
-    public GameObject Fire;
     public float CentreOfWorldLat;
     public float CentreOfWorldLon;
     public float MapSize;
@@ -37,7 +34,7 @@ public class SyncManager : MonoBehaviour
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
 
         // setup the prefab mapper (maps items to models of stuff)
-        var itemToGameObjectFactory = ItemToGameObjectFactory.Create(gameObject, stageCoordinateProjector, ItemPrefab, RoadMaterial);
+        var itemToGameObjectFactory = ItemToGameObjectFactory.Create(gameObject, stageCoordinateProjector);
 
         // keep track of what we have loaded
         var itemIdsLoaded = new HashSet<string>();

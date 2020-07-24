@@ -11,8 +11,12 @@ namespace Assets.Server.Mapper
         /// <summary>
         /// creates the factory, performing initialisation for the mappers
         /// </summary>
-        public static ItemToGameObjectFactory Create(GameObject stage, StageCoordProjection stageCoordProjector, GameObject itemPrefabs, Material roadMaterial)
+        public static ItemToGameObjectFactory Create(GameObject stage, StageCoordProjection stageCoordProjector)
         {
+            // load the road material
+            var roadMaterial = Resources.Load("Materials/Road") as Material;
+            var itemPrefabs = Resources.Load("Prefabs/ItemPrefab") as GameObject;
+
             // enumerate the prefab game objects, we use an empty game object prefab to house several game objects
             // the name is the key we use to look them up and assign them to items e.g. street lights
             var prefabs = new Dictionary<string, GameObject>();

@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 
-public class PersonAssetHighlighter : MonoBehaviour
+public class PlayerAssetHighlighter : MonoBehaviour
 {
     public GameObject AssetRadialMenu;
     private Outline _lastHitOutline;
