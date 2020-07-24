@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Assets.Server.Models;
 using Assets.Server.Projection;
 using GeoJSON.Net.Geometry;
@@ -56,11 +55,10 @@ namespace Assets.Server.Mapper
             }
 
             // make a new game object, we will draw programatically
-            var go = new GameObject();
-            go.transform.parent = Stage.transform;
+            var asset = new GameObject();
 
             // add the renderer to the game object
-            var renderer = go.AddComponent<LineRenderer>();
+            var renderer = asset.AddComponent<LineRenderer>();
             renderer.material = _roadMaterial;
             renderer.startWidth = 10.0f; 
             renderer.endWidth = 10.0f;
@@ -76,7 +74,7 @@ namespace Assets.Server.Mapper
             // TODO add a collider to the game object
             // the following code should work but having some troubles with the generated mesh?
             // currently linestrings are not collidable, thus not selectable
-            
+
             // construct a mesh and get the generated mesh from the line renderer into it
             //var mesh = new Mesh();
             //renderer.BakeMesh(mesh, true);
@@ -84,6 +82,21 @@ namespace Assets.Server.Mapper
             // then use the above mesh for the mesh collider so we can interact with it e.g. look at
             //var collider = go.AddComponent<MeshCollider>();
             //collider.sharedMesh = mesh;
+
+            // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
+            // to this just like the item prefabs
+            var go = new GameObject();
+
+            // add the asset to the container
+            asset.transform.parent = go.transform;
+
+            // add the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Asset = asset;
+            assetController.IsLineString = true;
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
 
             return go;
         }

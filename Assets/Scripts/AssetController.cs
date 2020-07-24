@@ -1,11 +1,21 @@
 ﻿using cakeslice;
+using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// this should be added to all "asset" game objects so they can be managed,
+/// the structure of the asset object should be:
+/// GameObject (where the controller lives)
+/// -- Asset (the game object that can be scaled/positioned relatively)
+/// -- [Space to add effects e.g. Fire]
+/// </summary>
 public class AssetController : MonoBehaviour
 {
     public GameObject Asset;
-    private GameObject _fire;
-    private ParticleSystem _fireParticleSystem;
+    public bool IsLineString;
+    public bool IsPolygon;
+    private IList<GameObject> _fires;
+    private IList<ParticleSystem> _fireParticleSystems;
 
     // Start is called before the first frame update
     void Start()
@@ -13,22 +23,17 @@ public class AssetController : MonoBehaviour
         // add the outline component
         Asset.AddComponent<Outline>().enabled = false;
 
-        // make a fire object on the game object, don't emit and clear any effects
-        // TODO maybe dynamically make fires on SetFire?
-        _fire = Instantiate(Resources.Load("Fire") as GameObject, gameObject.transform);
-        _fireParticleSystem = _fire.GetComponent<ParticleSystem>();
-        //_fireParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-        // if we can work out where to place it, do so
-        var mr = Asset.GetComponent<MeshRenderer>();
-        if (mr != null)
+        if (IsPolygon)
         {
-            // make the fire bigger
-            var particleSystemShape = _fireParticleSystem.shape;
-            particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
-
-            // put the fire on top of the thing
-            _fire.transform.localPosition = new Vector3(0.0f, mr.bounds.size.y, 0.0f);
+            InitialiseFirePolygon();
+        }
+        else if (IsLineString)
+        {
+            InitialiseFireLineString();
+        }
+        else
+        {
+            InitialiseFirePoint();
         }
     }
 
@@ -42,16 +47,72 @@ public class AssetController : MonoBehaviour
     {
         if (value)
         {
-            _fireParticleSystem.Play(true);
+            foreach (var particleSystem in _fireParticleSystems)
+            {
+                particleSystem.Play(true);
+            }
         }
         else
         {
-            _fireParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            foreach (var particleSystem in _fireParticleSystems)
+            {
+                particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
         }
     }
 
     public void SetInspect(bool value)
     {
 
+    }
+
+    private void InitialiseFirePoint()
+    {
+        // make a fire object on the game object
+        _fires = new List<GameObject>
+        {
+            Instantiate(Resources.Load("Fire") as GameObject, gameObject.transform)
+        };
+        _fireParticleSystems = new List<ParticleSystem>
+        {
+            _fires[0].GetComponent<ParticleSystem>(),
+        };
+
+        // make the fire bigger
+        var mr = Asset.GetComponent<MeshRenderer>();
+        var particleSystemShape = _fireParticleSystems[0].shape;
+        particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
+
+        // put the fire on top of the thing
+        _fires[0].transform.localPosition = new Vector3(0.0f, mr.bounds.size.y, 0.0f);
+    }
+
+    private void InitialiseFireLineString()
+    {
+        // get all the positions in the rendered line
+        var renderer = Asset.GetComponent<LineRenderer>();
+        var positions = new Vector3[renderer.positionCount];
+        renderer.GetPositions(positions);
+
+        _fires = new List<GameObject>();
+        _fireParticleSystems = new List<ParticleSystem>();
+        foreach (var position in positions)
+        {
+            var fire = Instantiate(Resources.Load("Fire") as GameObject, gameObject.transform);
+            var particleSystem = fire.GetComponent<ParticleSystem>();
+
+            fire.transform.localPosition = position;
+
+            _fires.Add(fire);
+            _fireParticleSystems.Add(particleSystem);
+        }
+    }
+
+    private void InitialiseFirePolygon()
+    {
+        _fires = new List<GameObject>();
+        _fireParticleSystems = new List<ParticleSystem>();
+
+        // TODO
     }
 }

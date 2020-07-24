@@ -93,20 +93,34 @@ namespace Assets.Server.Mapper
             mesh.Optimize();
 
             // make a new game object, we will draw programatically
-            var go = new GameObject();
-            go.transform.parent = Stage.transform;
+            var asset = new GameObject();
 
             // make the filter including the mesh we made
-            var filter = go.AddComponent<MeshFilter>();
+            var filter = asset.AddComponent<MeshFilter>();
             filter.mesh = mesh;
 
             // the way we render the poly
-            var renderer = go.AddComponent<MeshRenderer>();
+            var renderer = asset.AddComponent<MeshRenderer>();
             renderer.material = _groundMaterial;
 
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
-            var collider = go.AddComponent<MeshCollider>();
+            var collider = asset.AddComponent<MeshCollider>();
             collider.sharedMesh = mesh;
+
+            // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
+            // to this just like the item prefabs
+            var go = new GameObject();
+
+            // add the asset to the container
+            asset.transform.parent = go.transform;
+
+            // add the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Asset = asset;
+            assetController.IsPolygon = true;
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
 
             return go;
         }
