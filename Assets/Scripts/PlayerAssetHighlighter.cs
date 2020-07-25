@@ -23,7 +23,7 @@ public class PlayerAssetHighlighter : MonoBehaviour
     {
         if (_lastHitOutline != null && Input.GetMouseButtonDown(0))
         {
-            _assetMenuController.OpenMenu();
+            _assetMenuController.OpenMenu("item id that was pressed todo");
         }
     }
 
