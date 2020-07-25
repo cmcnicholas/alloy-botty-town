@@ -9,6 +9,7 @@ public class AssetMenuController : MonoBehaviour
     public GameObject AlloyMobile;
     private FirstPersonController _firstPersonController;
     private AlloyMobileController _alloyMobileController;
+    private LevelController _levelController;
     private string _itemId;
 
     // Start is called before the first frame update
@@ -19,6 +20,9 @@ public class AssetMenuController : MonoBehaviour
 
         // get the first person controller
         _firstPersonController = PlayerController.GetComponent<FirstPersonController>();
+
+        // get the level controller
+        _levelController = PlayerController.GetComponent<LevelController>();
 
         // get the alloy mobile controller
         _alloyMobileController = AlloyMobile.GetComponent<AlloyMobileController>();
@@ -46,11 +50,15 @@ public class AssetMenuController : MonoBehaviour
     public void OnCompleteInspectionsPressed()
     {
 
+        AssetMenu.SetActive(false);
+        StartCoroutine(CompleteInspectionsForAsset());
     }
 
     public void OnRegisterDefectPressed()
     {
 
+        AssetMenu.SetActive(false);
+        StartCoroutine(RegisterDefectForAsset());
     }
 
     public void OnClosePressed()
@@ -66,6 +74,40 @@ public class AssetMenuController : MonoBehaviour
 
         // do web request
         yield return new WaitForSeconds(3.0f);
+
+        _levelController.AddScore(100);
+
+        // unlock the person
+        _firstPersonController.SetLocked(false);
+        _alloyMobileController.HideMobile();
+        yield return null;
+    }
+
+    private IEnumerator CompleteInspectionsForAsset()
+    {
+        // display mobile
+        _alloyMobileController.ShowMobile();
+
+        // do web request
+        yield return new WaitForSeconds(3.0f);
+
+        _levelController.AddScore(100);
+
+        // unlock the person
+        _firstPersonController.SetLocked(false);
+        _alloyMobileController.HideMobile();
+        yield return null;
+    }
+
+    private IEnumerator RegisterDefectForAsset()
+    {
+        // display mobile
+        _alloyMobileController.ShowMobile();
+
+        // do web request
+        yield return new WaitForSeconds(3.0f);
+
+        _levelController.AddScore(100);
 
         // unlock the person
         _firstPersonController.SetLocked(false);
