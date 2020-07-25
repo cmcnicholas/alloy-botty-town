@@ -23,7 +23,9 @@ public class PlayerAssetHighlighter : MonoBehaviour
     {
         if (_lastHitOutline != null && Input.GetMouseButtonDown(0))
         {
-            _assetMenuController.OpenMenu("item id that was pressed todo");
+            // weirdly hit appears on the child component but the outline is on the parent, whatever...
+            var assetController = _lastHitOutline.transform.parent.GetComponent<AssetController>();
+            _assetMenuController.OpenMenu(assetController.ItemId);
         }
     }
 

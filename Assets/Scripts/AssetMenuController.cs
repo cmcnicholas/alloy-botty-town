@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 
@@ -10,7 +11,8 @@ public class AssetMenuController : MonoBehaviour
     private FirstPersonController _firstPersonController;
     private AlloyMobileController _alloyMobileController;
     private LevelController _levelController;
-    private string _itemId;
+    private string _assetItemId;
+    private bool _working = false;
 
     // Start is called before the first frame update
     void Start()
@@ -34,15 +36,22 @@ public class AssetMenuController : MonoBehaviour
 
     }
 
-    public void OpenMenu(string itemId)
+    public void OpenMenu(string assetItemId)
     {
-        _itemId = itemId;
+        // check if no-op
+        if (_working || _assetItemId == assetItemId)
+        {
+            return;
+        }
+
+        _assetItemId = assetItemId;
         _firstPersonController.SetLocked(true);
         AssetMenu.SetActive(true);
     }
 
     public void OnCompleteJobsPressed()
     {
+        _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(CompleteJobsForAsset());
     }
@@ -50,52 +59,86 @@ public class AssetMenuController : MonoBehaviour
     public void OnCompleteInspectionsPressed()
     {
 
+        _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(CompleteInspectionsForAsset());
     }
 
     public void OnRegisterDefectPressed()
     {
-
+        _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(RegisterDefectForAsset());
     }
 
     public void OnClosePressed()
     {
+        _assetItemId = null;
         AssetMenu.SetActive(false);
         _firstPersonController.SetLocked(false);
     }
 
     private IEnumerator CompleteJobsForAsset()
     {
+        // get the asset
+        var asset = _levelController.GameStore.GetAsset(_assetItemId);
+
+        // get all job ids on asset
+        var jobItemIds = asset.Jobs.Select(j => j.Value.ItemId).ToList();
+
         // display mobile
         _alloyMobileController.ShowMobile();
 
         // do web request
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(jobItemIds.Count * 3.0f);
 
-        _levelController.AddScore(100);
+        // remove all jobs from the asset
+        foreach (var jobItemId in jobItemIds)
+        {
+            _levelController.GameStore.RemoveJob(jobItemId);
+        }
+
+        // add to the score
+        _levelController.AddScore(jobItemIds.Count * 100);
 
         // unlock the person
         _firstPersonController.SetLocked(false);
         _alloyMobileController.HideMobile();
+
+        _working = false;
+        _assetItemId = null;
         yield return null;
     }
 
     private IEnumerator CompleteInspectionsForAsset()
     {
+        // get the asset
+        var asset = _levelController.GameStore.GetAsset(_assetItemId);
+
+        // get all inspection ids on asset
+        var inpsectionItemIds = asset.Inspections.Select(i => i.Value.ItemId).ToList();
+
         // display mobile
         _alloyMobileController.ShowMobile();
 
         // do web request
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(inpsectionItemIds.Count * 3.0f);
 
-        _levelController.AddScore(100);
+        // remove all inspections from the asset
+        foreach (var inpsectionItemId in inpsectionItemIds)
+        {
+            _levelController.GameStore.RemoveInspection(inpsectionItemId);
+        }
+
+        // add to the score
+        _levelController.AddScore(inpsectionItemIds.Count * 100);
 
         // unlock the person
         _firstPersonController.SetLocked(false);
         _alloyMobileController.HideMobile();
+
+        _working = false;
+        _assetItemId = null;
         yield return null;
     }
 
@@ -112,6 +155,9 @@ public class AssetMenuController : MonoBehaviour
         // unlock the person
         _firstPersonController.SetLocked(false);
         _alloyMobileController.HideMobile();
+
+        _working = false;
+        _assetItemId = null;
         yield return null;
     }
 }

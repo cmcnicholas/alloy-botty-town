@@ -14,8 +14,17 @@ public class AssetController : MonoBehaviour
     public GameObject Asset;
     public bool IsLineString;
     public bool IsPolygon;
+    public string ItemId;
     private IList<GameObject> _fires;
     private IList<ParticleSystem> _fireParticleSystems;
+    private bool _lastFire = false;
+    private bool _lastFireClear = false;
+    private bool _fire = false;
+    private bool _fireClear = true; // clear on start
+    private bool _lastInspect = false;
+    private bool _lastInspectClear = false;
+    private bool _inspect = false;
+    private bool _inspectClear = true; // clear on start
 
     private const string FirePrefab = "Prefabs/Fire";
 
@@ -42,30 +51,59 @@ public class AssetController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // update the fire particle system
+        if (_lastFire != _fire || _lastFireClear != _fireClear)
+        {
+            if (_fire)
+            {
+                foreach (var particleSystem in _fireParticleSystems)
+                {
+                    particleSystem.Play(true);
+                }
+            }
+            else
+            {
+                foreach (var particleSystem in _fireParticleSystems)
+                {
+                    particleSystem.Stop(true, _fireClear ? ParticleSystemStopBehavior.StopEmittingAndClear : ParticleSystemStopBehavior.StopEmitting);
+                }
+            }
+
+            _lastFire = _fire;
+            _lastFireClear = _fireClear;
+        }
+
+        // update the inspect particle system
+        if (_lastInspect != _inspect || _lastInspectClear != _inspectClear)
+        {
+            if (_inspect)
+            {
+                // add effect
+            }
+            else
+            {
+                // remove effect
+            }
+
+            _lastInspect = _inspect;
+            _lastInspectClear = _inspectClear;
+        }
     }
 
     public void SetFire(bool value)
     {
-        if (value)
-        {
-            foreach (var particleSystem in _fireParticleSystems)
-            {
-                particleSystem.Play(true);
-            }
-        }
-        else
-        {
-            foreach (var particleSystem in _fireParticleSystems)
-            {
-                particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            }
-        }
+        // set variables, updated in event loop because we do initialisation using this function and there are no particle
+        // systems created at this point in time (directly aftrer construction)
+        _fire = value;
+        _fireClear = false;
     }
 
     public void SetInspect(bool value)
     {
-
+        // set variables, updated in event loop because we do initialisation using this function and there are no particle
+        // systems created at this point in time (directly aftrer construction)
+        _inspect = value;
+        _inspectClear = false;
     }
 
     private void InitialiseFirePoint()
@@ -102,7 +140,7 @@ public class AssetController : MonoBehaviour
         {
             var fire = Instantiate(Resources.Load(FirePrefab) as GameObject, gameObject.transform);
             var particleSystem = fire.GetComponent<ParticleSystem>();
-
+            
             fire.transform.localPosition = position;
 
             _fires.Add(fire);

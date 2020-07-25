@@ -1,4 +1,4 @@
-﻿using Assets.Server.Models;
+﻿using Assets.Server.Game;
 using Assets.Server.Projection;
 using UnityEngine;
 
@@ -8,7 +8,7 @@ namespace Assets.Server.Mapper
     /// base implementation for the item to game object mapper,
     /// takes an item and makes a game object for it
     /// </summary>
-    public abstract class ItemToGameObjectMapperBase
+    public abstract class AssetToGameObjectMapperBase
     {
         /// <summary>
         /// the stage to host the game objects on (the container)
@@ -20,7 +20,7 @@ namespace Assets.Server.Mapper
         /// </summary>
         protected StageCoordProjection StageCoordProjector { get; private set; }
 
-        public ItemToGameObjectMapperBase(GameObject stage, StageCoordProjection stageCoordProjector)
+        public AssetToGameObjectMapperBase(GameObject stage, StageCoordProjection stageCoordProjector)
         {
             Stage = stage;
             StageCoordProjector = stageCoordProjector;
@@ -29,6 +29,6 @@ namespace Assets.Server.Mapper
         /// <summary>
         /// creates a game object for an item
         /// </summary>
-        public abstract GameObject CreateGameObjectForItem(ItemModel item);
+        public abstract GameObject CreateGameObjectForAsset(AssetModel asset);
     }
 }

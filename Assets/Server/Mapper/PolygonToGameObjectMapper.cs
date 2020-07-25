@@ -1,5 +1,5 @@
 ﻿using Assets.Server.Drawing;
-using Assets.Server.Models;
+using Assets.Server.Game;
 using Assets.Server.Projection;
 using GeoJSON.Net.Geometry;
 using System;
@@ -11,7 +11,7 @@ namespace Assets.Server.Mapper
     /// <summary>
     /// implementation to create game objects for linestring items
     /// </summary>
-    public class PolygonToGameObjectMapper : ItemToGameObjectMapperBase
+    public class PolygonToGameObjectMapper : AssetToGameObjectMapperBase
     {
         private Material _groundMaterial;
 
@@ -20,10 +20,10 @@ namespace Assets.Server.Mapper
             _groundMaterial = groundMaterial;
         }
 
-        public override GameObject CreateGameObjectForItem(ItemModel item)
+        public override GameObject CreateGameObjectForAsset(AssetModel asset)
         {
             // get the geometry and expect it to be a polygon
-            var itemPolygon = item.Geometry as Polygon;
+            var itemPolygon = asset.Geometry as Polygon;
             if (itemPolygon == null)
             {
                 throw new Exception("Expected item model geometry to be of type Polygon");
@@ -93,18 +93,18 @@ namespace Assets.Server.Mapper
             mesh.Optimize();
 
             // make a new game object, we will draw programatically
-            var asset = new GameObject();
+            var assetGameObject = new GameObject();
 
             // make the filter including the mesh we made
-            var filter = asset.AddComponent<MeshFilter>();
+            var filter = assetGameObject.AddComponent<MeshFilter>();
             filter.mesh = mesh;
 
             // the way we render the poly
-            var renderer = asset.AddComponent<MeshRenderer>();
+            var renderer = assetGameObject.AddComponent<MeshRenderer>();
             renderer.material = _groundMaterial;
 
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
-            var collider = asset.AddComponent<MeshCollider>();
+            var collider = assetGameObject.AddComponent<MeshCollider>();
             collider.sharedMesh = mesh;
 
             // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
@@ -112,12 +112,13 @@ namespace Assets.Server.Mapper
             var go = new GameObject();
 
             // add the asset to the container
-            asset.transform.parent = go.transform;
+            assetGameObject.transform.parent = go.transform;
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
-            assetController.Asset = asset;
+            assetController.Asset = assetGameObject;
             assetController.IsPolygon = true;
+            assetController.ItemId = asset.ItemId;
 
             // finally add the new object to the stage
             go.transform.parent = Stage.transform;

@@ -1,5 +1,5 @@
 ﻿using System;
-using Assets.Server.Models;
+using Assets.Server.Game;
 using Assets.Server.Projection;
 using GeoJSON.Net.Geometry;
 using UnityEngine;
@@ -9,7 +9,7 @@ namespace Assets.Server.Mapper
     /// <summary>
     /// implementation to create game objects for linestring items
     /// </summary>
-    public class LineStringToGameObjectMapper : ItemToGameObjectMapperBase
+    public class LineStringToGameObjectMapper : AssetToGameObjectMapperBase
     {
         private Material _roadMaterial;
 
@@ -18,10 +18,10 @@ namespace Assets.Server.Mapper
             _roadMaterial = roadMaterial;
         }
 
-        public override GameObject CreateGameObjectForItem(ItemModel item)
+        public override GameObject CreateGameObjectForAsset(AssetModel asset)
         {
             // get the geometry and expect it to be a linestring
-            var itemLineString = item.Geometry as LineString;
+            var itemLineString = asset.Geometry as LineString;
             if (itemLineString == null)
             {
                 throw new Exception("Expected item model geometry to be of type LineString");
@@ -55,10 +55,10 @@ namespace Assets.Server.Mapper
             }
 
             // make a new game object, we will draw programatically
-            var asset = new GameObject();
+            var assetGameObject = new GameObject();
 
             // add the renderer to the game object
-            var renderer = asset.AddComponent<LineRenderer>();
+            var renderer = assetGameObject.AddComponent<LineRenderer>();
             renderer.material = _roadMaterial;
             renderer.startWidth = 10.0f; 
             renderer.endWidth = 10.0f;
@@ -88,12 +88,13 @@ namespace Assets.Server.Mapper
             var go = new GameObject();
 
             // add the asset to the container
-            asset.transform.parent = go.transform;
+            assetGameObject.transform.parent = go.transform;
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
-            assetController.Asset = asset;
+            assetController.Asset = assetGameObject;
             assetController.IsLineString = true;
+            assetController.ItemId = asset.ItemId;
 
             // finally add the new object to the stage
             go.transform.parent = Stage.transform;

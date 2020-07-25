@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Server.Game;
+using System;
 using UnityEngine;
 
 public class LevelController : MonoBehaviour
@@ -10,6 +11,9 @@ public class LevelController : MonoBehaviour
     private int _levelTime = 300;
     private int _levelScore = 0;
     private float _startTime;
+
+    // this holds all our models e.g. assets/jobs/inspections
+    public GameStore GameStore { get; } = new GameStore();
 
     // Start is called before the first frame update
     void Start()
