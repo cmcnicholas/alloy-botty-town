@@ -79,7 +79,7 @@ namespace Assets.Server.Game
             asset.Inspections.Add(model.ItemId, model);
 
             // set animation to the asset as we have at least 1 inspection
-            asset.GetAssetController().SetInspect(true, asset.Inspections.Count == 1);
+            asset.GetAssetController().SetInspect(true);
         }
 
         public void RemoveAsset(string itemId)
@@ -163,7 +163,7 @@ namespace Assets.Server.Game
             // if the asset has no more inspections, remove animation
             if (asset.Inspections.Count == 0)
             {
-                asset.GetAssetController().SetInspect(false, false);
+                asset.GetAssetController().SetInspect(false);
             }
 
             // remove the inspection from the dictionary

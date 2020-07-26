@@ -67,7 +67,7 @@ public class AssetMenuController : MonoBehaviour
         var jobsButtonComponent = CloseJobsButton.GetComponent<Button>();
         jobsButtonComponent.interactable = hasJobs;
         var inspectionsButtonComponent = CloseInspectionsButton.GetComponent<Button>();
-        inspectionsButtonComponent.interactable = hasJobs;
+        inspectionsButtonComponent.interactable = hasInspections;
         var registerDefectButtonComponent = RegisterDefectButton.GetComponent<Button>();
         registerDefectButtonComponent.interactable = false; // TODO defect stuff
     }

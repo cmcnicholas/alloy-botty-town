@@ -17,14 +17,12 @@ public class AssetController : MonoBehaviour
     public string ItemId;
     private IList<GameObject> _jobFxGameObjects;
     private IList<ParticleSystem> _jobFxParticleSystems;
+    private AssetInspectionController _inspectionController;
     private bool _lastJob = false;
     private bool _lastJobClear = false;
     private bool _job = false;
     private bool _jobClear = true; // clear on start
-    private bool _lastInspect = false;
-    private bool _lastInspectClear = false;
     private bool _inspect = false;
-    private bool _inspectClear = true; // clear on start
 
     private string[] JobEffectPrefabs = new string[] { "Prefabs/FX/Fire", "Prefabs/FX/Smoke", "Prefabs/FX/Steam" };
 
@@ -33,6 +31,14 @@ public class AssetController : MonoBehaviour
     {
         // add the outline component
         Asset.AddComponent<Outline>().enabled = false;
+
+        // inspection controller, invisible by default
+        _inspectionController = gameObject.AddComponent<AssetInspectionController>();
+        _inspectionController.Asset = Asset;
+        _inspectionController.IsPolygon = IsPolygon;
+        _inspectionController.IsLineString = IsLineString;
+        _inspectionController.Visible = false; // non-visible assets to start
+        _inspectionController.enabled = false; // also don't bother running
 
         if (IsPolygon)
         {
@@ -73,20 +79,12 @@ public class AssetController : MonoBehaviour
             _lastJobClear = _jobClear;
         }
 
-        // update the inspect particle system
-        if (_lastInspect != _inspect || _lastInspectClear != _inspectClear)
+        // update the inspection controller
+        _inspectionController.Visible = _inspect;
+        if (_inspect)
         {
-            if (_inspect)
-            {
-                // add effect
-            }
-            else
-            {
-                // remove effect
-            }
-
-            _lastInspect = _inspect;
-            _lastInspectClear = _inspectClear;
+            // first time we go visible turn on the controller
+            _inspectionController.enabled = true;
         }
     }
 
@@ -98,12 +96,10 @@ public class AssetController : MonoBehaviour
         _jobClear = clear;
     }
 
-    public void SetInspect(bool value, bool clear)
+    public void SetInspect(bool value)
     {
-        // set variables, updated in event loop because we do initialisation using this function and there are no particle
-        // systems created at this point in time (directly aftrer construction)
+        // set variables, updated in event loop because we do initialisation using Start()
         _inspect = value;
-        _inspectClear = clear;
     }
 
     private void InitialiseJobPoint()
