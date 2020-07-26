@@ -57,14 +57,18 @@ public class AssetInspectionController : MonoBehaviour
         var templatePrefab = GetRandomPrefab();
 
         // add 4 around the asset
-        var barrier1 = Instantiate(GetRandomPrefab(), gameObject.transform);
-        var barrier2 = Instantiate(GetRandomPrefab(), gameObject.transform);
-        var barrier3 = Instantiate(GetRandomPrefab(), gameObject.transform);
-        var barrier4 = Instantiate(GetRandomPrefab(), gameObject.transform);
+        var barrier1 = Instantiate(templatePrefab, gameObject.transform);
+        var barrier2 = Instantiate(templatePrefab, gameObject.transform);
+        var barrier3 = Instantiate(templatePrefab, gameObject.transform);
+        var barrier4 = Instantiate(templatePrefab, gameObject.transform);
         barrier1.transform.localPosition = new Vector3(min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), min.z);
+        barrier1.transform.Rotate(0f, -135f, 0f);
         barrier2.transform.localPosition = new Vector3(min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), max.z);
+        barrier2.transform.Rotate(0f, -45f, 0f);
         barrier3.transform.localPosition = new Vector3(max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), max.z);
+        barrier3.transform.Rotate(0f, 45f, 0f);
         barrier4.transform.localPosition = new Vector3(max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), min.z);
+        barrier4.transform.Rotate(0f, 135f, 0f);
         _gameObjects.Add(barrier1);
         _gameObjects.Add(barrier2);
         _gameObjects.Add(barrier3);
@@ -82,6 +86,7 @@ public class AssetInspectionController : MonoBehaviour
         {
             var barrier = Instantiate(GetRandomPrefab(), gameObject.transform);
             barrier.transform.localPosition = new Vector3(position.x, position.y, position.z);
+            barrier.transform.Rotate(0f, Random.Range(0f, 360f), 0f); // rotate anywhere
             _gameObjects.Add(barrier);
         }
     }
