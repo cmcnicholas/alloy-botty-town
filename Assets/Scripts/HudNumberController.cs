@@ -13,9 +13,11 @@ public class HudNumberController : MonoBehaviour
     public GameObject Number7;
     public GameObject Number8;
     public GameObject Number9;
+    public float ColourTilingOffsetY = 0.9f;
     public int Number;
     private IDictionary<int, GameObject> _numbers;
     private int? _lastNumber = null;
+    private float? _lastColourTilingOffsetY = null;
 
     // Start is called before the first frame update
     void Start()
@@ -45,19 +47,28 @@ public class HudNumberController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // check if we need to update
-        if (_lastNumber == Number)
+        // check if we need to update colour
+        if (_lastColourTilingOffsetY != ColourTilingOffsetY)
         {
-            return;
+            foreach (var keyPair in _numbers)
+            {
+                keyPair.Value.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(1f, ColourTilingOffsetY));
+            }
+
+            _lastColourTilingOffsetY = ColourTilingOffsetY;
         }
 
-        // update visible number
-        foreach (var keyPair in _numbers)
+        // check if we need to number
+        if (_lastNumber != Number)
         {
-            keyPair.Value.SetActive(keyPair.Key == Number);
-        }
+            // update visible number
+            foreach (var keyPair in _numbers)
+            {
+                keyPair.Value.SetActive(keyPair.Key == Number);
+            }
 
-        _lastNumber = Number;
+            _lastNumber = Number;
+        }
     }
 
 }
