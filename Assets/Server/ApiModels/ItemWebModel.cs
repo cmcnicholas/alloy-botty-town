@@ -7,5 +7,6 @@ namespace Assets.Server.ApiModels
         public string ItemId;
         public string DesignCode;
         public IList<ItemAttributeWebModel> Attributes;
+        public string Signature;
     }
 }

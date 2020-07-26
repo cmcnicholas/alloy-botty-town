@@ -90,20 +90,20 @@ public class AssetController : MonoBehaviour
         }
     }
 
-    public void SetFire(bool value)
+    public void SetFire(bool value, bool clear)
     {
         // set variables, updated in event loop because we do initialisation using this function and there are no particle
         // systems created at this point in time (directly aftrer construction)
         _fire = value;
-        _fireClear = false;
+        _fireClear = clear;
     }
 
-    public void SetInspect(bool value)
+    public void SetInspect(bool value, bool clear)
     {
         // set variables, updated in event loop because we do initialisation using this function and there are no particle
         // systems created at this point in time (directly aftrer construction)
         _inspect = value;
-        _inspectClear = false;
+        _inspectClear = clear;
     }
 
     private void InitialiseFirePoint()

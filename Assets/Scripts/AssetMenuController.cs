@@ -1,11 +1,15 @@
 ﻿using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 
 public class AssetMenuController : MonoBehaviour
 {
     public GameObject AssetMenu;
+    public GameObject CloseJobsButton;
+    public GameObject CloseInspectionsButton;
+    public GameObject RegisterDefectButton;
     public GameObject PlayerController;
     public GameObject AlloyMobile;
     private FirstPersonController _firstPersonController;
@@ -44,9 +48,28 @@ public class AssetMenuController : MonoBehaviour
             return;
         }
 
+        // check we have an asset
+        var asset = _levelController.GameStore.GetAsset(assetItemId);
+        if (asset == null)
+        {
+            return;
+        }
+
+        // set state and update menu visually
         _assetItemId = assetItemId;
         _firstPersonController.SetLocked(true);
         AssetMenu.SetActive(true);
+
+        // work out which menu options are available
+        bool hasJobs = asset.Jobs.Count > 0;
+        bool hasInspections = asset.Inspections.Count > 0;
+
+        var jobsButtonComponent = CloseJobsButton.GetComponent<Button>();
+        jobsButtonComponent.interactable = hasJobs;
+        var inspectionsButtonComponent = CloseInspectionsButton.GetComponent<Button>();
+        inspectionsButtonComponent.interactable = hasJobs;
+        var registerDefectButtonComponent = RegisterDefectButton.GetComponent<Button>();
+        registerDefectButtonComponent.interactable = false; // TODO defect stuff
     }
 
     public void OnCompleteJobsPressed()

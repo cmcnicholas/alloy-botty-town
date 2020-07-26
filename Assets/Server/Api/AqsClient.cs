@@ -10,13 +10,17 @@ namespace Assets.Server.Api
         private string _token;
         private string _aqs;
         private int _page;
+        private int _pageSize;
+        private bool _isJoin;
 
-        public AqsClient(string apiUrl, string token, string aqs, int page)
+        public AqsClient(string apiUrl, string token, string aqs, bool isJoin, int page, int pageSize)
         {
             _apiUrl = apiUrl;
             _token = token;
             _aqs = aqs;
             _page = page;
+            _pageSize = pageSize;
+            _isJoin = isJoin;
         }
 
         public override IEnumerator Send()
@@ -24,11 +28,12 @@ namespace Assets.Server.Api
             var query = new Dictionary<string, string>
             {
                 { "token", _token },
-                { "page", _page.ToString() }
+                { "page", _page.ToString() },
+                { "pageSize", _pageSize.ToString() }
             };
             string json = $"{{ \"aqs\": {_aqs} }}";
 
-            yield return Send("POST", _apiUrl, "api/aqs/query", query, json, true);
+            yield return Send("POST", _apiUrl, $"api/aqs/{(_isJoin ? "join" : "query")}", query, json, true);
         }
     }
 }

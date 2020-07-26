@@ -56,7 +56,7 @@ namespace Assets.Server.Game
             asset.Jobs.Add(model.ItemId, model);
 
             // set fire to the asset as we have at least 1 job
-            asset.GetAssetController().SetFire(true);
+            asset.GetAssetController().SetFire(true, asset.Jobs.Count == 1);
         }
 
         public void AddInspection(InspectionModel model)
@@ -79,7 +79,7 @@ namespace Assets.Server.Game
             asset.Inspections.Add(model.ItemId, model);
 
             // set animation to the asset as we have at least 1 inspection
-            asset.GetAssetController().SetInspect(true);
+            asset.GetAssetController().SetInspect(true, asset.Inspections.Count == 1);
         }
 
         public void RemoveAsset(string itemId)
@@ -134,7 +134,7 @@ namespace Assets.Server.Game
             // if the asset has no more jobs, remove fire
             if (asset.Jobs.Count == 0)
             {
-                asset.GetAssetController().SetFire(false);
+                asset.GetAssetController().SetFire(false, false);
             }
 
             // remove the job from the dictionary
@@ -163,7 +163,7 @@ namespace Assets.Server.Game
             // if the asset has no more inspections, remove animation
             if (asset.Inspections.Count == 0)
             {
-                asset.GetAssetController().SetInspect(false);
+                asset.GetAssetController().SetInspect(false, false);
             }
 
             // remove the inspection from the dictionary

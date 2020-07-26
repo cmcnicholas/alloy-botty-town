@@ -1,4 +1,5 @@
 ﻿using Assets.Server.Api;
+using Assets.Server.Aqs;
 using Assets.Server.Game;
 using Assets.Server.Mapper;
 using Assets.Server.Projection;
@@ -43,27 +44,33 @@ public class SyncManager : MonoBehaviour
         while (true)
         {
             // recursive coroutines start here
-            yield return StartCoroutine(CoroutineDiffPage(1, itemToGameObjectFactory));
+            yield return StartCoroutine(SyncAssetsCoroutine(1, itemToGameObjectFactory));
+            yield return StartCoroutine(SyncJobsCoroutine(1));
+            yield return StartCoroutine(SyncInspectionsCoroutine(1));
 
-            Debug.Log("Finished loading assets, waiting 5 seconds...");
+            Debug.Log($"Finished syncing @{Time.realtimeSinceStartup}s, sleeping...");
             yield return new WaitForSeconds(5.0f);
         }
     }
 
-    private IEnumerator CoroutineDiffPage(int page, AssetToGameObjectFactory itemToGameObjectFactory)
+    private IEnumerator SyncAssetsCoroutine(int page, AssetToGameObjectFactory itemToGameObjectFactory)
     {
-        string aqs = "{ \"type\": \"Query\", \"properties\": { \"dodiCode\": \"designInterfaces_assetHeads\", \"attributes\": [\"attributes_itemsGeometry\", \"attributes_itemsTitle\", \"attributes_itemsSubtitle\"] } }";
-        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs, page);
+        var aqs = new AqsNode("Query");
+        aqs.SetPropertyString("dodiCode", "designInterfaces_assetHeads");
+        aqs.SetPropertyObject("attributes", "[\"attributes_itemsGeometry\", \"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
+
+        int pageSize = 100;
+        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), false, page, pageSize);
         yield return aqsClient.Send();
 
         if (aqsClient.Error != null)
         {
-            Debug.Log("Failed to get AQS response, waiting 5 seconds... Error: " + aqsClient.Error.Message);
+            Debug.Log("Failed to get AQS response for asset sync, waiting 5 seconds... Error: " + aqsClient.Error.Message);
             yield return new WaitForSeconds(5.0f);
         }
         else if (aqsClient.Response == null)
         {
-            Debug.Log("Failed to get AQS response, waiting 5 seconds... Error: response was null");
+            Debug.Log("Failed to get AQS response for asset sync, waiting 5 seconds... Error: response was null");
             yield return new WaitForSeconds(5.0f);
         }
         else
@@ -72,39 +79,207 @@ public class SyncManager : MonoBehaviour
             {
                 if (_levelController.GameStore.GetAsset(jsonItem.ItemId) != null)
                 {
-                    Debug.Log("Skipping item, already loaded " + jsonItem.ItemId);
                     continue;
                 }
 
                 // create item to keep and manage
-                var geometry = jsonItem.Attributes.First(a => a.AttributeCode == "attributes_itemsGeometry").ValueAsGeoJson();
+                var geometry = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsGeometry")?.ValueAsGeoJson();
+                if (geometry == null)
+                {
+                    continue;
+                }
+
                 var asset = new AssetModel(jsonItem.ItemId, jsonItem.DesignCode, geometry);
 
                 // make the game object for the asset
-                asset.GameObject = itemToGameObjectFactory.CreateGameObjectForAsset(asset);
+                var go = itemToGameObjectFactory.CreateGameObjectForAsset(asset);
+
+                // if we can't make a game object? (maybe complex poly?)
+                if (go == null)
+                {
+                    continue;
+                }
+
+                // otherwise set the assets game object to manage
+                asset.GameObject = go;
 
                 // add to store
                 _levelController.GameStore.AddAsset(asset);
-
-                if (Random.value > 0.75f)
-                {
-                    var job = new JobModel(asset.ItemId, asset.ItemId + "XXX", "YYY");
-                    _levelController.GameStore.AddJob(job);
-                }
-                if (Random.value > 0.75f)
-                {
-                    var inspection = new InspectionModel(asset.ItemId, asset.ItemId + "YYY", "ZZZ");
-                    _levelController.GameStore.AddInspection(inspection);
-                }
 
                 // yield and await more work
                 yield return null;
             }
 
-            // if we have more pages, go get them
-            if (aqsClient.Response.TotalPages > page)
+            // if we have a full page, there might be more
+            if (aqsClient.Response.Results.Count == pageSize)
             {
-                yield return StartCoroutine(CoroutineDiffPage(++page, itemToGameObjectFactory));
+                // 1/2 second between pages
+                yield return new WaitForSeconds(0.5f);
+                yield return StartCoroutine(SyncAssetsCoroutine(++page, itemToGameObjectFactory));
+            }
+        }
+    }
+
+    private IEnumerator SyncJobsCoroutine(int page)
+    {
+        var aqs = new AqsNode("Join");
+        aqs.SetPropertyString("dodiCode", "designInterfaces_jobs");
+        aqs.SetPropertyObject("attributes", "[\"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
+
+        // join to parent asset, we have to get an attribute so just get title, we use this later to find the query (should only be one anyway)
+        string joinAttributeToMatch = "root^attributes_tasksAssignableTasks.attributes_itemsTitle";
+        aqs.SetPropertyObject("joinAttributes", "[\"" + joinAttributeToMatch + "\"]");
+
+        int pageSize = 100;
+        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), true, page, pageSize);
+        yield return aqsClient.Send();
+
+        if (aqsClient.Error != null)
+        {
+            Debug.Log("Failed to get AQS response for jobs sync, waiting 5 seconds... Error: " + aqsClient.Error.Message);
+            yield return new WaitForSeconds(5.0f);
+        }
+        else if (aqsClient.Response == null)
+        {
+            Debug.Log("Failed to get AQS response for jobs sync, waiting 5 seconds... Error: response was null");
+            yield return new WaitForSeconds(5.0f);
+        }
+        else
+        {
+            // process the join results to key on item id
+            var joinResultsByItemId = aqsClient.Response.JoinResults?.ToDictionary(r => r.ItemId, r => r.JoinQueries);
+
+            foreach (var jsonItem in aqsClient.Response.Results)
+            {
+                // check if the join results has a value, if not, it isn't connected to an asset (shouldn't be possible based on query)
+                if (joinResultsByItemId == null || !joinResultsByItemId.ContainsKey(jsonItem.ItemId))
+                {
+                    continue;
+                }
+                // check the job already exists
+                if (_levelController.GameStore.GetJob(jsonItem.ItemId) != null)
+                {
+                    continue;
+                }
+
+                // try to get the parent asset from the join results, if not then the job has no asset parent
+                var parentAssetJson = joinResultsByItemId[jsonItem.ItemId].FirstOrDefault(q => q.JoinAttributes.Any(a => a == joinAttributeToMatch));
+                if (parentAssetJson == null)
+                {
+                    continue;
+                }
+                // special case, job has multiple asset parents
+                if (parentAssetJson.Item == null)
+                {
+                    Debug.Log("Job has multiple parent assets, skipping: " + jsonItem.ItemId);
+                    continue;
+                }
+                // check the parent asset exists in our store
+                // TODO we could technically add it here if missing, we need to get the join attributes required
+                if (_levelController.GameStore.GetAsset(parentAssetJson.Item.ItemId) == null)
+                {
+                    Debug.Log("Job parent asset has not been synced, skipping: " + jsonItem.ItemId);
+                    continue;
+                }
+
+                // create item to keep and manage
+                var job = new JobModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.Signature);
+                
+                // add to store
+                _levelController.GameStore.AddJob(job);
+                
+                // yield and await more work
+                yield return null;
+            }
+
+            // if we have a full page, there might be more
+            if (aqsClient.Response.Results.Count == pageSize)
+            {
+                // 1/2 second between pages
+                yield return new WaitForSeconds(0.5f);
+                yield return StartCoroutine(SyncJobsCoroutine(++page));
+            }
+        }
+    }
+
+    private IEnumerator SyncInspectionsCoroutine(int page)
+    {
+        var aqs = new AqsNode("Join");
+        aqs.SetPropertyString("dodiCode", "designInterfaces_inspections");
+        aqs.SetPropertyObject("attributes", "[\"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
+
+        // join to parent asset, we have to get an attribute so just get title, we use this later to find the query (should only be one anyway)
+        string joinAttributeToMatch = "root^attributes_tasksAssignableTasks.attributes_itemsTitle";
+        aqs.SetPropertyObject("joinAttributes", "[\"" + joinAttributeToMatch + "\"]");
+
+        int pageSize = 100;
+        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), true, page, pageSize);
+        yield return aqsClient.Send();
+
+        if (aqsClient.Error != null)
+        {
+            Debug.Log("Failed to get AQS response for inspections sync, waiting 5 seconds... Error: " + aqsClient.Error.Message);
+            yield return new WaitForSeconds(5.0f);
+        }
+        else if (aqsClient.Response == null)
+        {
+            Debug.Log("Failed to get AQS response for inspections sync, waiting 5 seconds... Error: response was null");
+            yield return new WaitForSeconds(5.0f);
+        }
+        else
+        {
+            // process the join results to key on item id
+            var joinResultsByItemId = aqsClient.Response.JoinResults?.ToDictionary(r => r.ItemId, r => r.JoinQueries);
+
+            foreach (var jsonItem in aqsClient.Response.Results)
+            {
+                // check if the join results has a value, if not, it isn't connected to an asset (shouldn't be possible based on query)
+                if (joinResultsByItemId == null || !joinResultsByItemId.ContainsKey(jsonItem.ItemId))
+                {
+                    continue;
+                }
+                // check the inspection already exists
+                if (_levelController.GameStore.GetInspection(jsonItem.ItemId) != null)
+                {
+                    continue;
+                }
+
+                // try to get the parent asset from the join results, if not then the job has no asset parent
+                var parentAssetJson = joinResultsByItemId[jsonItem.ItemId].FirstOrDefault(q => q.JoinAttributes.Any(a => a == joinAttributeToMatch));
+                if (parentAssetJson == null)
+                {
+                    continue;
+                }
+                // special case, job has multiple asset parents
+                if (parentAssetJson.Item == null)
+                {
+                    Debug.Log("Inspection has multiple parent assets, skipping: " + jsonItem.ItemId);
+                    continue;
+                }
+                // check the parent asset exists in our store
+                // TODO we could technically add it here if missing, we need to get the join attributes required
+                if (_levelController.GameStore.GetAsset(parentAssetJson.Item.ItemId) == null)
+                {
+                    Debug.Log("Inspection parent asset has not been synced, skipping: " + jsonItem.ItemId);
+                    continue;
+                }
+
+                // create item to keep and manage
+                var inspection = new InspectionModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.Signature);
+
+                // add to store
+                _levelController.GameStore.AddInspection(inspection);
+
+                // yield and await more work
+                yield return null;
+            }
+
+            // if we have a full page, there might be more
+            if (aqsClient.Response.Results.Count == pageSize)
+            {
+                // 1/2 second between pages
+                yield return new WaitForSeconds(0.5f);
+                yield return StartCoroutine(SyncInspectionsCoroutine(++page));
             }
         }
     }
