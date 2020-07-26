@@ -15,18 +15,18 @@ public class AssetController : MonoBehaviour
     public bool IsLineString;
     public bool IsPolygon;
     public string ItemId;
-    private IList<GameObject> _fires;
-    private IList<ParticleSystem> _fireParticleSystems;
-    private bool _lastFire = false;
-    private bool _lastFireClear = false;
-    private bool _fire = false;
-    private bool _fireClear = true; // clear on start
+    private IList<GameObject> _jobFxGameObjects;
+    private IList<ParticleSystem> _jobFxParticleSystems;
+    private bool _lastJob = false;
+    private bool _lastJobClear = false;
+    private bool _job = false;
+    private bool _jobClear = true; // clear on start
     private bool _lastInspect = false;
     private bool _lastInspectClear = false;
     private bool _inspect = false;
     private bool _inspectClear = true; // clear on start
 
-    private const string FirePrefab = "Prefabs/Fire";
+    private string[] JobEffectPrefabs = new string[] { "Prefabs/FX/Fire", "Prefabs/FX/Smoke", "Prefabs/FX/Steam" };
 
     // Start is called before the first frame update
     void Start()
@@ -36,41 +36,41 @@ public class AssetController : MonoBehaviour
 
         if (IsPolygon)
         {
-            InitialiseFirePolygon();
+            InitialiseJobPolygon();
         }
         else if (IsLineString)
         {
-            InitialiseFireLineString();
+            InitialiseJobLineString();
         }
         else
         {
-            InitialiseFirePoint();
+            InitialiseJobPoint();
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        // update the fire particle system
-        if (_lastFire != _fire || _lastFireClear != _fireClear)
+        // update the job particle system
+        if (_lastJob != _job || _lastJobClear != _jobClear)
         {
-            if (_fire)
+            if (_job)
             {
-                foreach (var particleSystem in _fireParticleSystems)
+                foreach (var particleSystem in _jobFxParticleSystems)
                 {
                     particleSystem.Play(true);
                 }
             }
             else
             {
-                foreach (var particleSystem in _fireParticleSystems)
+                foreach (var particleSystem in _jobFxParticleSystems)
                 {
-                    particleSystem.Stop(true, _fireClear ? ParticleSystemStopBehavior.StopEmittingAndClear : ParticleSystemStopBehavior.StopEmitting);
+                    particleSystem.Stop(true, _jobClear ? ParticleSystemStopBehavior.StopEmittingAndClear : ParticleSystemStopBehavior.StopEmitting);
                 }
             }
 
-            _lastFire = _fire;
-            _lastFireClear = _fireClear;
+            _lastJob = _job;
+            _lastJobClear = _jobClear;
         }
 
         // update the inspect particle system
@@ -90,12 +90,12 @@ public class AssetController : MonoBehaviour
         }
     }
 
-    public void SetFire(bool value, bool clear)
+    public void SetJob(bool value, bool clear)
     {
         // set variables, updated in event loop because we do initialisation using this function and there are no particle
         // systems created at this point in time (directly aftrer construction)
-        _fire = value;
-        _fireClear = clear;
+        _job = value;
+        _jobClear = clear;
     }
 
     public void SetInspect(bool value, bool clear)
@@ -106,53 +106,58 @@ public class AssetController : MonoBehaviour
         _inspectClear = clear;
     }
 
-    private void InitialiseFirePoint()
+    private void InitialiseJobPoint()
     {
-        // make a fire object on the game object
-        _fires = new List<GameObject>
+        // make an fx object on the game object
+        _jobFxGameObjects = new List<GameObject>
         {
-            Instantiate(Resources.Load(FirePrefab) as GameObject, gameObject.transform)
+            Instantiate(GetRandomJobEffectPrefab(), gameObject.transform)
         };
-        _fireParticleSystems = new List<ParticleSystem>
+        _jobFxParticleSystems = new List<ParticleSystem>
         {
-            _fires[0].GetComponent<ParticleSystem>(),
+            _jobFxGameObjects[0].GetComponent<ParticleSystem>(),
         };
 
-        // make the fire bigger
+        // make the fx bigger
         var mr = Asset.GetComponent<MeshRenderer>();
-        var particleSystemShape = _fireParticleSystems[0].shape;
+        var particleSystemShape = _jobFxParticleSystems[0].shape;
         particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
 
-        // put the fire on top of the thing
-        _fires[0].transform.localPosition = new Vector3(0.0f, mr.bounds.size.y, 0.0f);
+        // put the fx on top of the thing
+        _jobFxGameObjects[0].transform.localPosition = new Vector3(0.0f, mr.bounds.size.y, 0.0f);
     }
 
-    private void InitialiseFireLineString()
+    private void InitialiseJobLineString()
     {
         // get all the positions in the rendered line
         var renderer = Asset.GetComponent<LineRenderer>();
         var positions = new Vector3[renderer.positionCount];
         renderer.GetPositions(positions);
 
-        _fires = new List<GameObject>();
-        _fireParticleSystems = new List<ParticleSystem>();
+        _jobFxGameObjects = new List<GameObject>();
+        _jobFxParticleSystems = new List<ParticleSystem>();
         foreach (var position in positions)
         {
-            var fire = Instantiate(Resources.Load(FirePrefab) as GameObject, gameObject.transform);
-            var particleSystem = fire.GetComponent<ParticleSystem>();
+            var fx = Instantiate(GetRandomJobEffectPrefab(), gameObject.transform);
+            var particleSystem = fx.GetComponent<ParticleSystem>();
             
-            fire.transform.localPosition = position;
+            fx.transform.localPosition = position;
 
-            _fires.Add(fire);
-            _fireParticleSystems.Add(particleSystem);
+            _jobFxGameObjects.Add(fx);
+            _jobFxParticleSystems.Add(particleSystem);
         }
     }
 
-    private void InitialiseFirePolygon()
+    private void InitialiseJobPolygon()
     {
-        _fires = new List<GameObject>();
-        _fireParticleSystems = new List<ParticleSystem>();
+        _jobFxGameObjects = new List<GameObject>();
+        _jobFxParticleSystems = new List<ParticleSystem>();
 
         // TODO
+    }
+
+    private GameObject GetRandomJobEffectPrefab()
+    {
+        return Resources.Load(JobEffectPrefabs[Random.Range(0, JobEffectPrefabs.Length - 1)]) as GameObject;
     }
 }
