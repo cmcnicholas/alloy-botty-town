@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class MainMenuTweenController : MonoBehaviour
 {
+    public GameObject MainMenuBotty;
     public GameObject MainMenuAlloyExperiment;
     public GameObject MainMenuTitle;
     public GameObject MainMenuOptions;
@@ -11,6 +12,7 @@ public class MainMenuTweenController : MonoBehaviour
     public GameObject MainMenuHintRegisterDefects;
     public GameObject MainMenuHintSelection;
     public float OffscreenMoveValue = 500f;
+    private Vector3 _originalBottyScale;
 
     // Start is called before the first frame update
     void Start()
@@ -24,7 +26,7 @@ public class MainMenuTweenController : MonoBehaviour
         StartCoroutine(FadeInAlloyExperimentCoroutine());
         
         // entry punch for title
-        iTween.PunchScale(MainMenuTitle, new Vector3(10f, 10f, 10f), 1.0f);
+        iTween.PunchScale(MainMenuTitle, new Vector3(0, 0, 10f), 1.0f);
         StartCoroutine(PunchTitleCoroutine());
 
         // hide options intially
@@ -33,6 +35,10 @@ public class MainMenuTweenController : MonoBehaviour
         // set scales
         MainMenuHintFixJobs.transform.localScale = Vector3.zero;
         MainMenuHintFixInspections.transform.localScale = Vector3.zero;
+
+        // set botty scale and keep
+        _originalBottyScale = MainMenuBotty.transform.localScale;
+        MainMenuBotty.transform.localScale = Vector3.zero;
 
         // set initial offscreen for some hints
         iTween.MoveAdd(MainMenuHintRegisterDefects, new Vector3(-OffscreenMoveValue, 0, 0), 0f);
@@ -58,6 +64,7 @@ public class MainMenuTweenController : MonoBehaviour
     private IEnumerator PunchTitleCoroutine()
     {
         yield return new WaitForSeconds(1f);
+        iTween.ScaleTo(MainMenuBotty, _originalBottyScale, 1f);
 
         // main menu options become available
         MainMenuOptions.SetActive(true);
