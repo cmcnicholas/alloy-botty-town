@@ -8,6 +8,7 @@ public class LevelController : MonoBehaviour
     public GameObject ScoreCounter;
     public int WarnSecondsRemaining;
     public float WarnSecondsRemainingColourOffsetY = 0.7f;
+    private LevelSoundEffectsController _levelSoundEffectsController;
     private HudCounterController _timerCounterController;
     private HudCounterController _scoreCounterController;
     private int _levelTime = 300;
@@ -21,6 +22,7 @@ public class LevelController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _levelSoundEffectsController = GetComponent<LevelSoundEffectsController>();
         _timerCounterController = TimerCounter.GetComponent<HudCounterController>();
         _scoreCounterController = ScoreCounter.GetComponent<HudCounterController>();
 
@@ -37,7 +39,18 @@ public class LevelController : MonoBehaviour
         // update the time left in the game
         int timeLeft = _levelTime - (int)Math.Ceiling(Time.time - _startTime);
         _timerCounterController.Number = timeLeft;
-        _timerCounterController.ColourTilingOffsetY = timeLeft <= WarnSecondsRemaining ? WarnSecondsRemainingColourOffsetY : _startColourTilingOffsetY;
+
+        bool isWarning = timeLeft <= WarnSecondsRemaining;
+        _timerCounterController.ColourTilingOffsetY = isWarning ? WarnSecondsRemainingColourOffsetY : _startColourTilingOffsetY;
+
+        if (timeLeft > 0 && isWarning)
+        {
+            _levelSoundEffectsController.PlayTimerCountdown();
+        }
+        else
+        {
+            _levelSoundEffectsController.StopTimerCountdown();
+        }
 
         // update the score
         _scoreCounterController.Number = _levelScore;

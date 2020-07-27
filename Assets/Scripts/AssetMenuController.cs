@@ -15,6 +15,7 @@ public class AssetMenuController : MonoBehaviour
     private FirstPersonController _firstPersonController;
     private AlloyMobileController _alloyMobileController;
     private LevelController _levelController;
+    private LevelSoundEffectsController _levelSoundEffectsController;
     private string _assetItemId;
     private bool _working = false;
 
@@ -29,6 +30,7 @@ public class AssetMenuController : MonoBehaviour
 
         // get the level controller
         _levelController = PlayerController.GetComponent<LevelController>();
+        _levelSoundEffectsController = PlayerController.GetComponent<LevelSoundEffectsController>();
 
         // get the alloy mobile controller
         _alloyMobileController = AlloyMobile.GetComponent<AlloyMobileController>();
@@ -70,6 +72,9 @@ public class AssetMenuController : MonoBehaviour
         inspectionsButtonComponent.interactable = hasInspections;
         var registerDefectButtonComponent = RegisterDefectButton.GetComponent<Button>();
         registerDefectButtonComponent.interactable = false; // TODO defect stuff
+
+        // open menu sound
+        _levelSoundEffectsController.PlayMenuOpen();
     }
 
     public void OnCompleteJobsPressed()
@@ -77,6 +82,9 @@ public class AssetMenuController : MonoBehaviour
         _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(CompleteJobsForAsset());
+
+        // select menu sound
+        _levelSoundEffectsController.PlayMenuSelect();
     }
 
     public void OnCompleteInspectionsPressed()
@@ -85,6 +93,9 @@ public class AssetMenuController : MonoBehaviour
         _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(CompleteInspectionsForAsset());
+
+        // select menu sound
+        _levelSoundEffectsController.PlayMenuSelect();
     }
 
     public void OnRegisterDefectPressed()
@@ -92,6 +103,9 @@ public class AssetMenuController : MonoBehaviour
         _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(RegisterDefectForAsset());
+
+        // select menu sound
+        _levelSoundEffectsController.PlayMenuSelect();
     }
 
     public void OnClosePressed()
@@ -99,6 +113,9 @@ public class AssetMenuController : MonoBehaviour
         _assetItemId = null;
         AssetMenu.SetActive(false);
         _firstPersonController.SetLocked(false);
+
+        // select menu close
+        _levelSoundEffectsController.PlayMenuClosed();
     }
 
     private IEnumerator CompleteJobsForAsset()
@@ -131,6 +148,9 @@ public class AssetMenuController : MonoBehaviour
         _working = false;
         _assetItemId = null;
         yield return null;
+
+        // success sound!
+        _levelSoundEffectsController.PlaySuccess();
     }
 
     private IEnumerator CompleteInspectionsForAsset()
@@ -163,6 +183,9 @@ public class AssetMenuController : MonoBehaviour
         _working = false;
         _assetItemId = null;
         yield return null;
+
+        // success sound!
+        _levelSoundEffectsController.PlaySuccess();
     }
 
     private IEnumerator RegisterDefectForAsset()
@@ -182,5 +205,8 @@ public class AssetMenuController : MonoBehaviour
         _working = false;
         _assetItemId = null;
         yield return null;
+
+        // success sound!
+        _levelSoundEffectsController.PlaySuccess();
     }
 }
