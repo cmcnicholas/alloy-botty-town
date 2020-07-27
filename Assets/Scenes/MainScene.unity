@@ -645,6 +645,7 @@ MonoBehaviour:
   WarnSecondsRemaining: 30
   WarnSecondsRemainingColourOffsetY: 0.8
   LevelTime: 300
+  IsFreePlay: 0
 --- !u!114 &218800048
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1181,7 +1182,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f1cdf0b25245d71469eacac3e99348cc, type: 2}
+  - {fileID: 2100000, guid: 4f530eb4e81e0224ea00d6acc74855bd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8722,6 +8723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerController: {fileID: 218800040}
   MainMenuCamera: {fileID: 511009163}
+  MainMenuResumeButton: {fileID: 221994976}
 --- !u!1 &1153747939
 GameObject:
   m_ObjectHideFlags: 0

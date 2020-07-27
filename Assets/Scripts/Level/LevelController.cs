@@ -9,6 +9,7 @@ public class LevelController : MonoBehaviour
     public int WarnSecondsRemaining;
     public float WarnSecondsRemainingColourOffsetY = 0.7f;
     public int LevelTime = 300;
+    public bool IsFreePlay = false;
     private LevelSoundEffectsController _levelSoundEffectsController;
     private HudCounterController _timerCounterController;
     private HudCounterController _scoreCounterController;
@@ -26,6 +27,7 @@ public class LevelController : MonoBehaviour
         _timerCounterController = TimerCounter.GetComponent<HudCounterController>();
         _scoreCounterController = ScoreCounter.GetComponent<HudCounterController>();
 
+        // set the time left
         _timeLeft = LevelTime;
 
         // log starting colour
@@ -58,5 +60,25 @@ public class LevelController : MonoBehaviour
     public void AddScore(int score)
     {
         _levelScore += Math.Abs(score);
+    }
+
+    public void ResetTimeTrial()
+    {
+        IsFreePlay = false;
+        _levelScore = 0;
+        _timeLeft = LevelTime;
+
+        // turn on the timer
+        TimerCounter.SetActive(true);
+    }
+
+    public void ResetFreePlay()
+    {
+        IsFreePlay = true;
+        _levelScore = 0;
+        _timeLeft = LevelTime;
+
+        // turn off the timer
+        TimerCounter.SetActive(false);
     }
 }

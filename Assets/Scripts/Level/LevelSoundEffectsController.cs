@@ -33,6 +33,7 @@ public class LevelSoundEffectsController : MonoBehaviour
     {
         _scoreAudioSource.clip = SuccessClips[Random.Range(0, SuccessClips.Count - 1)];
         _scoreAudioSource.Play();
+        _scoreAudioSource.playOnAwake = false;
     }
 
     public void PlayMenuOpen()
@@ -59,6 +60,7 @@ public class LevelSoundEffectsController : MonoBehaviour
         _timerAudioSource.clip = TimerCountdownClip;
         _timerAudioSource.loop = true;
         _timerAudioSource.Play();
+        _timerAudioSource.playOnAwake = true;
     }
 
     public void StopTimerCountdown()
@@ -70,5 +72,6 @@ public class LevelSoundEffectsController : MonoBehaviour
     {
         _menuAudioSource.clip = clip;
         _menuAudioSource.Play();
+        _menuAudioSource.playOnAwake = false;
     }
 }
