@@ -12,6 +12,7 @@ namespace Assets.Server.Game
         public GameObject GameObject { get; set; }
         public IDictionary<string, JobModel> Jobs { get; } = new Dictionary<string, JobModel>();
         public IDictionary<string, InspectionModel> Inspections { get; } = new Dictionary<string, InspectionModel>();
+        public IDictionary<string, DefectModel> Defects { get; } = new Dictionary<string, DefectModel>();
         private AssetController _assetController;
 
         public AssetModel(string itemId, string designCode, IGeometryObject geometry)

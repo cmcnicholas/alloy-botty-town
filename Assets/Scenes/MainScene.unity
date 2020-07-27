@@ -669,6 +669,22 @@ MonoBehaviour:
   MenuCloseClip: {fileID: 8300000, guid: c23f1597cec495d4a9bd3073d83f5a98, type: 3}
   MenuSelectClip: {fileID: 8300000, guid: 9daa300548d3a1147915e6d7546a4157, type: 3}
   TimerCountdownClip: {fileID: 8300000, guid: b6a16401946871a4597deb1349d96724, type: 3}
+--- !u!114 &218800049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218800040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 988dc09943d017a4bbb8e53f84dcda68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MinSpawnTime: 30
+  MaxSpawnTime: 60
+  MinSpawnRange: 50
+  MaxSpawnRange: 300
 --- !u!1 &221994976
 GameObject:
   m_ObjectHideFlags: 0

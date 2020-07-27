@@ -65,13 +65,14 @@ public class AssetMenuController : MonoBehaviour
         // work out which menu options are available
         bool hasJobs = asset.Jobs.Count > 0;
         bool hasInspections = asset.Inspections.Count > 0;
+        bool hasDefects = asset.Defects.Count > 0;
 
         var jobsButtonComponent = CloseJobsButton.GetComponent<Button>();
         jobsButtonComponent.interactable = hasJobs;
         var inspectionsButtonComponent = CloseInspectionsButton.GetComponent<Button>();
         inspectionsButtonComponent.interactable = hasInspections;
         var registerDefectButtonComponent = RegisterDefectButton.GetComponent<Button>();
-        registerDefectButtonComponent.interactable = false; // TODO defect stuff
+        registerDefectButtonComponent.interactable = hasDefects;
 
         // open menu sound
         _levelSoundEffectsController.PlayMenuOpen();
@@ -190,13 +191,26 @@ public class AssetMenuController : MonoBehaviour
 
     private IEnumerator RegisterDefectForAsset()
     {
+        // get the asset
+        var asset = _levelController.GameStore.GetAsset(_assetItemId);
+
+        // get all defect ids on asset
+        var defectItemIds = asset.Defects.Select(i => i.Value.ItemId).ToList();
+
         // display mobile
         _alloyMobileController.ShowMobile();
 
         // do web request
         yield return new WaitForSeconds(3.0f);
 
-        _levelController.AddScore(100);
+        // remove all defects from the asset
+        foreach (var defectItemId in defectItemIds)
+        {
+            _levelController.GameStore.RemoveDefect(defectItemId);
+        }
+
+        // add to the score
+        _levelController.AddScore(defectItemIds.Count * 100);
 
         // unlock the person
         _firstPersonController.SetLocked(false);
