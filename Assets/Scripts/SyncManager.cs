@@ -34,6 +34,9 @@ public class SyncManager : MonoBehaviour
 
     private IEnumerator CoroutineDiff()
     {
+        // go sleep, helps startup
+        yield return new WaitForSeconds(2.0f);
+
         // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
         var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(CentreOfWorldLat, CentreOfWorldLon);
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);

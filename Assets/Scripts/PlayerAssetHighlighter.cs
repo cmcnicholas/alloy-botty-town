@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerAssetHighlighter : MonoBehaviour
 {
     public GameObject MenuCanvas;
+    public GameObject Stage;
     private AssetMenuController _assetMenuController;
     private Outline _lastHitOutline;
 
@@ -26,6 +27,17 @@ public class PlayerAssetHighlighter : MonoBehaviour
             // weirdly hit appears on the child component but the outline is on the parent, whatever...
             var assetController = _lastHitOutline.transform.parent.GetComponent<AssetController>();
             _assetMenuController.OpenMenu(assetController.ItemId);
+        }
+    }
+
+    private void OnEnable()
+    {
+        // weird bug where the outline script selects everything on screen during transition from 
+        // main menu camera to player camera, this goes and nukes the enabled state on all outlines
+        // so they don't get a chance to render :)
+        foreach (var outline in Stage.GetComponentsInChildren<Outline>())
+        {
+            outline.enabled = false;
         }
     }
 
