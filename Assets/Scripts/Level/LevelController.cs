@@ -1,28 +1,41 @@
 ﻿using Assets.Server.Game;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
+    public GameObject GameOver;
     public GameObject TimerCounter;
     public GameObject ScoreCounter;
     public int WarnSecondsRemaining;
     public float WarnSecondsRemainingColourOffsetY = 0.7f;
     public int LevelTime = 300;
+    public int LevelScore = 0;
     public bool IsFreePlay = false;
+    private GameOverController _gameOverController;
     private LevelSoundEffectsController _levelSoundEffectsController;
     private HudCounterController _timerCounterController;
     private HudCounterController _scoreCounterController;
-    private int _levelScore = 0;
+    private IList<InspectionModel> _scoredInspections = new List<InspectionModel>();
+    private IList<DefectModel> _scoredDefects = new List<DefectModel>();
+    private IList<JobModel> _scoredJobs = new List<JobModel>();
     private float _timeLeft;
     private float _startColourTilingOffsetY;
 
     // this holds all our models e.g. assets/jobs/inspections
     public GameStore GameStore { get; } = new GameStore();
 
+    public int InspectionsCompleted { get { return _scoredInspections.Count; } }
+    public int JobsCompleted { get { return _scoredJobs.Count; } }
+    public int DefectsCompleted { get { return _scoredDefects.Count; } }
+
     // Start is called before the first frame update
     void Start()
     {
+        _gameOverController = GameOver.GetComponent<GameOverController>();
+
         _levelSoundEffectsController = GetComponent<LevelSoundEffectsController>();
         _timerCounterController = TimerCounter.GetComponent<HudCounterController>();
         _scoreCounterController = ScoreCounter.GetComponent<HudCounterController>();
@@ -41,10 +54,16 @@ public class LevelController : MonoBehaviour
         _timeLeft -= Time.deltaTime;
         _timerCounterController.Number = (int)Math.Ceiling(_timeLeft);
 
+        if (_timeLeft <= 0f)
+        {
+            _gameOverController.ShowScreen();
+            return;
+        }
+
         bool isWarning = _timeLeft <= WarnSecondsRemaining;
         _timerCounterController.ColourTilingOffsetY = isWarning ? WarnSecondsRemainingColourOffsetY : _startColourTilingOffsetY;
 
-        if (_timeLeft > 0 && isWarning)
+        if (isWarning)
         {
             _levelSoundEffectsController.PlayTimerCountdown();
         }
@@ -54,18 +73,34 @@ public class LevelController : MonoBehaviour
         }
 
         // update the score
-        _scoreCounterController.Number = _levelScore;
+        _scoreCounterController.Number = LevelScore;
     }
 
-    public void AddScore(int score)
+    public void ScoreInspection(InspectionModel inspection)
     {
-        _levelScore += Math.Abs(score);
+        _scoredInspections.Add(inspection);
+        RecalculateScore();
+    }
+
+    public void ScoreDefect(DefectModel defect)
+    {
+        _scoredDefects.Add(defect);
+        RecalculateScore();
+    }
+
+    public void ScoreJob(JobModel job)
+    {
+        _scoredJobs.Add(job);
+        RecalculateScore();
     }
 
     public void ResetTimeTrial()
     {
         IsFreePlay = false;
-        _levelScore = 0;
+        LevelScore = 0;
+        _scoredDefects.Clear();
+        _scoredInspections.Clear();
+        _scoredJobs.Clear();
         _timeLeft = LevelTime;
 
         // turn on the timer
@@ -75,10 +110,32 @@ public class LevelController : MonoBehaviour
     public void ResetFreePlay()
     {
         IsFreePlay = true;
-        _levelScore = 0;
+        LevelScore = 0;
+        _scoredDefects.Clear();
+        _scoredInspections.Clear();
+        _scoredJobs.Clear();
         _timeLeft = LevelTime;
 
         // turn off the timer
         TimerCounter.SetActive(false);
+    }
+
+    private void RecalculateScore()
+    {
+        int totalUniqueJobs = _scoredJobs.Select(j => j.ParentAssetItemId).Distinct().Count();
+        int totalUniqueDefects = _scoredDefects.Select(d => d.ParentAssetItemId).Distinct().Count();
+        int totalUniqueInspections = _scoredInspections.Select(i => i.ParentAssetItemId).Distinct().Count();
+
+        LevelScore = Math.Abs(
+            // unique tasks and defects are worth 800 each (1k with the 200 pts below)
+            (totalUniqueJobs * 800) + 
+            (totalUniqueDefects * 800) + 
+            (totalUniqueInspections * 800) + 
+
+            // additionally jobs, defects and inspections are worth 200 on their own
+            (_scoredJobs.Count * 200) + 
+            (_scoredDefects.Count * 200) + 
+            (_scoredInspections.Count * 200)
+        );
     }
 }

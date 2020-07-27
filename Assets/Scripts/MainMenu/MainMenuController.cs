@@ -4,6 +4,7 @@ using UnityStandardAssets.Characters.FirstPerson;
 
 public class MainMenuController : MonoBehaviour
 {
+    public GameObject GameOver;
     public GameObject PlayerController;
     public GameObject MainMenuCamera;
     public GameObject MainMenuResumeButton;
@@ -23,10 +24,10 @@ public class MainMenuController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey("escape"))
+        if (Input.GetKey("escape") && PlayerController.activeInHierarchy)
         {
             // if the player controller is active then we was playing
-            ShowMenu(PlayerController.activeSelf);
+            ShowMenu(PlayerController.activeInHierarchy);
         }
     }
 
@@ -36,6 +37,7 @@ public class MainMenuController : MonoBehaviour
         _mainMenuResumeButton.interactable = paused;
 
         MainMenuCamera.SetActive(true);
+        GameOver.SetActive(false);
         PlayerController.GetComponent<FirstPersonController>().SetLocked(true);
         PlayerController.SetActive(false);
     }

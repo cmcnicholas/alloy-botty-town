@@ -125,22 +125,22 @@ public class AssetMenuController : MonoBehaviour
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
         // get all job ids on asset
-        var jobItemIds = asset.Jobs.Select(j => j.Value.ItemId).ToList();
+        var jobs = asset.Jobs.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
 
         // do web request
-        yield return new WaitForSeconds(jobItemIds.Count * 3.0f);
+        yield return new WaitForSeconds(jobs.Count * 3.0f);
 
         // remove all jobs from the asset
-        foreach (var jobItemId in jobItemIds)
+        foreach (var pair in jobs)
         {
-            _levelController.GameStore.RemoveJob(jobItemId);
-        }
+            _levelController.GameStore.RemoveJob(pair.Value.ItemId);
 
-        // add to the score
-        _levelController.AddScore(jobItemIds.Count * 100);
+            // add to the score
+            _levelController.ScoreJob(pair.Value);
+        }
 
         // unlock the person
         _firstPersonController.SetLocked(false);
@@ -160,22 +160,22 @@ public class AssetMenuController : MonoBehaviour
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
         // get all inspection ids on asset
-        var inpsectionItemIds = asset.Inspections.Select(i => i.Value.ItemId).ToList();
+        var inspections = asset.Inspections.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
 
         // do web request
-        yield return new WaitForSeconds(inpsectionItemIds.Count * 3.0f);
+        yield return new WaitForSeconds(inspections.Count * 3.0f);
 
         // remove all inspections from the asset
-        foreach (var inpsectionItemId in inpsectionItemIds)
+        foreach (var pair in inspections)
         {
-            _levelController.GameStore.RemoveInspection(inpsectionItemId);
-        }
+            _levelController.GameStore.RemoveInspection(pair.Value.ItemId);
 
-        // add to the score
-        _levelController.AddScore(inpsectionItemIds.Count * 100);
+            // add to the score
+            _levelController.ScoreInspection(pair.Value);
+        }
 
         // unlock the person
         _firstPersonController.SetLocked(false);
@@ -195,7 +195,7 @@ public class AssetMenuController : MonoBehaviour
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
         // get all defect ids on asset
-        var defectItemIds = asset.Defects.Select(i => i.Value.ItemId).ToList();
+        var defects = asset.Defects.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
@@ -204,13 +204,13 @@ public class AssetMenuController : MonoBehaviour
         yield return new WaitForSeconds(3.0f);
 
         // remove all defects from the asset
-        foreach (var defectItemId in defectItemIds)
+        foreach (var pair in defects)
         {
-            _levelController.GameStore.RemoveDefect(defectItemId);
-        }
+            _levelController.GameStore.RemoveDefect(pair.Value.ItemId);
 
-        // add to the score
-        _levelController.AddScore(defectItemIds.Count * 100);
+            // add to the score
+            _levelController.ScoreDefect(pair.Value);
+        }
 
         // unlock the person
         _firstPersonController.SetLocked(false);

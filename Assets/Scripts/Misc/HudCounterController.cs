@@ -17,6 +17,7 @@ public class HudCounterController : MonoBehaviour
     public GameObject HudNumberPos6;
     public GameObject HudNumberPos7;
     public GameObject HudNumberPos8;
+    public bool FixedWidth = false;
     public float ColourTilingOffsetY = 0.9f;
     public float PunchScale;
     public int Number;
@@ -82,9 +83,26 @@ public class HudCounterController : MonoBehaviour
             }
             else
             {
-                // clean the number incase too big
+                // workout how to show the number
                 string stringified = Number.ToString();
-                stringified = stringified.Substring(Math.Max(stringified.Length - _numberGameObjects.Count, 0), Math.Min(_numberGameObjects.Count, Number.ToString().Length));
+
+                // either fixed width, always show all characters
+                if (FixedWidth)
+                {
+                    if (stringified.Length < _numberGameObjects.Count)
+                    {
+                        stringified = stringified.PadLeft(_numberGameObjects.Count, '0');
+                    }
+                    else
+                    {
+                        stringified = stringified.Substring(stringified.Length - _numberGameObjects.Count);
+                    }
+                }
+                else
+                {
+                    // or non-fixed, hide characters
+                    stringified = stringified.Substring(Math.Max(stringified.Length - _numberGameObjects.Count, 0), Math.Min(_numberGameObjects.Count, Number.ToString().Length));
+                }
                 int stringifiedLength = stringified.Length;
 
                 // iterate through and update
