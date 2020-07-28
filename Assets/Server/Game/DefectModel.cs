@@ -1,16 +1,12 @@
 ﻿namespace Assets.Server.Game
 {
-    public class DefectModel
+    public class DefectModel : ItemModelBase
     {
         public string ParentAssetItemId { get; }
-        public string ItemId { get; }
-        public string Signature { get; }
 
-        public DefectModel(string parentAssetItemId, string itemId, string signature)
+        public DefectModel(string parentAssetItemId, string itemId, string designCode, string title, string subtitle, string signature) : base(itemId, designCode, title, subtitle, signature)
         {
             ParentAssetItemId = parentAssetItemId;
-            ItemId = itemId;
-            Signature = signature;
         }
     }
 }

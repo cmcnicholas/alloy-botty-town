@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Server;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -68,11 +69,11 @@ public class AssetMenuController : MonoBehaviour
         bool hasDefects = asset.Defects.Count > 0;
 
         var jobsButtonComponent = CloseJobsButton.GetComponent<Button>();
-        jobsButtonComponent.interactable = hasJobs;
+        jobsButtonComponent.interactable = ApplicationGlobals.JobFixAllowed && hasJobs;
         var inspectionsButtonComponent = CloseInspectionsButton.GetComponent<Button>();
-        inspectionsButtonComponent.interactable = hasInspections;
+        inspectionsButtonComponent.interactable = ApplicationGlobals.InspectionCompleteAllowed && hasInspections;
         var registerDefectButtonComponent = RegisterDefectButton.GetComponent<Button>();
-        registerDefectButtonComponent.interactable = hasDefects;
+        registerDefectButtonComponent.interactable = ApplicationGlobals.DefectSpawn && hasDefects;
 
         // open menu sound
         _levelSoundEffectsController.PlayMenuOpen();
@@ -80,6 +81,12 @@ public class AssetMenuController : MonoBehaviour
 
     public void OnCompleteJobsPressed()
     {
+        // paranoid check
+        if (!ApplicationGlobals.JobFixAllowed)
+        {
+            return;
+        }
+
         _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(CompleteJobsForAsset());
@@ -90,6 +97,11 @@ public class AssetMenuController : MonoBehaviour
 
     public void OnCompleteInspectionsPressed()
     {
+        // paranoid check
+        if (!ApplicationGlobals.InspectionCompleteAllowed)
+        {
+            return;
+        }
 
         _working = true;
         AssetMenu.SetActive(false);
@@ -101,6 +113,12 @@ public class AssetMenuController : MonoBehaviour
 
     public void OnRegisterDefectPressed()
     {
+        // paranoid check
+        if (!ApplicationGlobals.DefectSpawn)
+        {
+            return;
+        }
+
         _working = true;
         AssetMenu.SetActive(false);
         StartCoroutine(RegisterDefectForAsset());

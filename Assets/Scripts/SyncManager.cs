@@ -1,4 +1,5 @@
-﻿using Assets.Server.Api;
+﻿using Assets.Server;
+using Assets.Server.Api;
 using Assets.Server.Aqs;
 using Assets.Server.Game;
 using Assets.Server.Mapper;
@@ -10,11 +11,7 @@ using UnityEngine;
 public class SyncManager : MonoBehaviour
 {
     public GameObject PlayerController;
-    public float CentreOfWorldLat;
-    public float CentreOfWorldLon;
     public float MapSize;
-    public string ApiUrl;
-    public string ApiKey;
     private LevelController _levelController;
 
     // Start is called before the first frame update
@@ -38,7 +35,7 @@ public class SyncManager : MonoBehaviour
         yield return new WaitForSeconds(2.0f);
 
         // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
-        var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(CentreOfWorldLat, CentreOfWorldLon);
+        var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(ApplicationGlobals.CentreLat, ApplicationGlobals.CentreLng);
         var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
 
         // setup the prefab mapper (maps items to models of stuff)
@@ -63,7 +60,7 @@ public class SyncManager : MonoBehaviour
         aqs.SetPropertyObject("attributes", "[\"attributes_itemsGeometry\", \"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
 
         int pageSize = 100;
-        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), false, page, pageSize);
+        var aqsClient = new AqsClient(ApplicationGlobals.ApiUrl, ApplicationGlobals.ApiToken, aqs.Stringify(), false, page, pageSize);
         yield return aqsClient.Send();
 
         if (aqsClient.Error != null)
@@ -80,19 +77,24 @@ public class SyncManager : MonoBehaviour
         {
             foreach (var jsonItem in aqsClient.Response.Results)
             {
+                // if we already have the asset then skip
                 if (_levelController.GameStore.GetAsset(jsonItem.ItemId) != null)
                 {
                     continue;
                 }
 
                 // create item to keep and manage
+                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
+                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
                 var geometry = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsGeometry")?.ValueAsGeoJson();
+
+                // if we don't have geom then be gone!
                 if (geometry == null)
                 {
                     continue;
                 }
 
-                var asset = new AssetModel(jsonItem.ItemId, jsonItem.DesignCode, geometry);
+                var asset = new AssetModel(jsonItem.ItemId, jsonItem.DesignCode, title, subtitle, jsonItem.Signature, geometry);
 
                 // make the game object for the asset
                 var go = itemToGameObjectFactory.CreateGameObjectForAsset(asset);
@@ -134,7 +136,7 @@ public class SyncManager : MonoBehaviour
         aqs.SetPropertyObject("joinAttributes", "[\"" + joinAttributeToMatch + "\"]");
 
         int pageSize = 100;
-        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), true, page, pageSize);
+        var aqsClient = new AqsClient(ApplicationGlobals.ApiUrl, ApplicationGlobals.ApiToken, aqs.Stringify(), true, page, pageSize);
         yield return aqsClient.Send();
 
         if (aqsClient.Error != null)
@@ -178,7 +180,6 @@ public class SyncManager : MonoBehaviour
                     continue;
                 }
                 // check the parent asset exists in our store
-                // TODO we could technically add it here if missing, we need to get the join attributes required
                 if (_levelController.GameStore.GetAsset(parentAssetJson.Item.ItemId) == null)
                 {
                     Debug.Log("Job parent asset has not been synced, skipping: " + jsonItem.ItemId);
@@ -186,7 +187,9 @@ public class SyncManager : MonoBehaviour
                 }
 
                 // create item to keep and manage
-                var job = new JobModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.Signature);
+                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
+                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
+                var job = new JobModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.DesignCode, title, subtitle, jsonItem.Signature);
                 
                 // add to store
                 _levelController.GameStore.AddJob(job);
@@ -216,7 +219,7 @@ public class SyncManager : MonoBehaviour
         aqs.SetPropertyObject("joinAttributes", "[\"" + joinAttributeToMatch + "\"]");
 
         int pageSize = 100;
-        var aqsClient = new AqsClient(ApiUrl, ApiKey, aqs.Stringify(), true, page, pageSize);
+        var aqsClient = new AqsClient(ApplicationGlobals.ApiUrl, ApplicationGlobals.ApiToken, aqs.Stringify(), true, page, pageSize);
         yield return aqsClient.Send();
 
         if (aqsClient.Error != null)
@@ -268,7 +271,9 @@ public class SyncManager : MonoBehaviour
                 }
 
                 // create item to keep and manage
-                var inspection = new InspectionModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.Signature);
+                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
+                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
+                var inspection = new InspectionModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.DesignCode, title, subtitle, jsonItem.Signature);
 
                 // add to store
                 _levelController.GameStore.AddInspection(inspection);

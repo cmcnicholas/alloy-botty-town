@@ -5724,9 +5724,9 @@ MonoBehaviour:
   GameOver: {fileID: 581531079}
   TimerCounter: {fileID: 1494562710}
   ScoreCounter: {fileID: 7907839597866285224}
-  WarnSecondsRemaining: 15
+  WarnSecondsRemaining: 30
   WarnSecondsRemainingColourOffsetY: 0.8
-  LevelTime: 20
+  LevelTime: 300
   LevelScore: 0
   IsFreePlay: 0
 --- !u!114 &218800048
@@ -7097,11 +7097,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerController: {fileID: 218800040}
-  CentreOfWorldLat: 52.289135
-  CentreOfWorldLon: -1.533704
   MapSize: 10000
-  ApiUrl: https://api.labs.alloyapp.io
-  ApiKey: e2c58fef-c0ce-4e15-883d-31fd6edba206
 --- !u!114 &390434821
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23509,10 +23505,10 @@ RectTransform:
   - {fileID: 86611086}
   - {fileID: 1042607236}
   - {fileID: 256204881}
-  - {fileID: 989078876}
-  - {fileID: 820351267}
-  - {fileID: 1779137207}
   - {fileID: 1120934309}
+  - {fileID: 989078876}
+  - {fileID: 1779137207}
+  - {fileID: 820351267}
   m_Father: {fileID: 986546924}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -24180,7 +24176,6 @@ MonoBehaviour:
   Moon: {fileID: 807535380}
   Stars: {fileID: 1777424231}
   Light: {fileID: 114699666}
-  DayNightCycleSeconds: 60
 --- !u!1 &1948968200
 GameObject:
   m_ObjectHideFlags: 0

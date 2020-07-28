@@ -13,12 +13,19 @@ public class AudioLooper : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
+        
+    }
+
+    void OnEnable()
+    {
         // get the audio source(s) to play on
         _audioSources = Cameras.Select(c => c.GetComponent<AudioSource>()).ToList();
 
         // start looping
         if (Clips != null && Clips.Count > 0)
         {
+            // need to restart this when game object is disabled/enabled
             StartCoroutine(LoopAudioCoroutine());
         }
     }

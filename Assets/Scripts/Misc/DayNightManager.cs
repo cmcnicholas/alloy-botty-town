@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Server;
+using UnityEngine;
 
 public class DayNightManager : MonoBehaviour
 {
@@ -7,7 +8,6 @@ public class DayNightManager : MonoBehaviour
     public GameObject Moon;
     public GameObject Stars;
     public GameObject Light;
-    public float DayNightCycleSeconds;
 
     private Renderer _skyDomeRenderer;
     private float _skyOffsetX;
@@ -29,7 +29,7 @@ public class DayNightManager : MonoBehaviour
     void Update()
     {
         // difference normalised 0-1 from last frame
-        float difference = Time.deltaTime / DayNightCycleSeconds;
+        float difference = Time.deltaTime / ApplicationGlobals.DayNightCycleSeconds;
 
         // the skybox we use has offset x between 0-1 which is nice, we just increment by delta each frame
         _skyOffsetX = _skyOffsetX + difference;
@@ -49,7 +49,7 @@ public class DayNightManager : MonoBehaviour
         Sun.transform.Rotate(new Vector3(orbitRotation, 0.0f, 0.0f));
         
         // manage when the stars come out
-        _daysPassed += Time.deltaTime / DayNightCycleSeconds;
+        _daysPassed += Time.deltaTime / ApplicationGlobals.DayNightCycleSeconds;
         float timeOfDay = _daysPassed - Mathf.Floor(_daysPassed);
         bool isDay = timeOfDay >= 0.25 && timeOfDay < 0.75;
         _starsRenderer.enabled = !isDay;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace Assets.Server.Aqs
 {
@@ -28,7 +29,7 @@ namespace Assets.Server.Aqs
 
         public void SetPropertyString(string name, string value)
         {
-            Properties[name] = string.IsNullOrEmpty(value) ? "null" : "\"" + value + "\"";
+            Properties[name] = string.IsNullOrEmpty(value) ? "null" : "\"" + UnityWebRequest.EscapeURL(value) + "\"";
         }
     }
 }
