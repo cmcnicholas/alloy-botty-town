@@ -6,17 +6,16 @@ using Newtonsoft.Json.Linq;
 
 namespace Assets.Server.ApiModels
 {
-    public class ItemCreateWebRequestModel
+    public class ItemEditWebRequestModel
     {
-        public string DesignCode;
         public string Collection;
+        public string Signature;
         public IDictionary<string, string> Attributes = new Dictionary<string, string>();
-        public IDictionary<string, IList<string>> Parents = new Dictionary<string, IList<string>>();
 
-        public ItemCreateWebRequestModel(string designCode, string collection)
+        public ItemEditWebRequestModel(string collection, string signature)
         {
-            DesignCode = designCode;
             Collection = collection;
+            Signature = signature;
         }
 
         public void SetAttributes(JObject attributes)
@@ -32,10 +31,9 @@ namespace Assets.Server.ApiModels
             var builder = new StringBuilder();
 
             builder.Append("{");
-            builder.Append("\"designCode\": \"" + DesignCode + "\",");
+            builder.Append("\"signature\": \"" + Signature + "\",");
             builder.Append("\"collection\": \"" + Collection + "\",");
-            builder.Append("\"attributes\": [" + string.Join(",", Attributes.Select(pair => "{\"attributeCode\": \"" + pair.Key + "\", \"value\": " + pair.Value + "}")) + "],");
-            builder.Append("\"parents\": {" + string.Join(",", Parents.Select(pair => "\"" + pair.Key + "\": [" + string.Join(",", pair.Value.Select(v => "\"" + v + "\"")) + "]")) + "}");
+            builder.Append("\"attributes\": [" + string.Join(",", Attributes.Select(pair => "{\"attributeCode\": \"" + pair.Key + "\", \"value\": " + pair.Value + "}")) + "]");
             builder.Append("}");
 
             return builder.ToString();

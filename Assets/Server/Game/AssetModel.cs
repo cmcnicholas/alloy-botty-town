@@ -10,7 +10,7 @@ namespace Assets.Server.Game
         public GameObject GameObject { get; set; } // will be set later
         public IDictionary<string, JobModel> Jobs { get; } = new Dictionary<string, JobModel>();
         public IDictionary<string, InspectionModel> Inspections { get; } = new Dictionary<string, InspectionModel>();
-        public IDictionary<string, DefectModel> Defects { get; } = new Dictionary<string, DefectModel>();
+        public IDictionary<string, TempDefectModel> TempDefects { get; } = new Dictionary<string, TempDefectModel>();
         private AssetController _assetController;
 
         public AssetModel(string itemId, string designCode, string title, string subtitle, string signature, IGeometryObject geometry) : base(itemId, designCode, title, subtitle, signature)

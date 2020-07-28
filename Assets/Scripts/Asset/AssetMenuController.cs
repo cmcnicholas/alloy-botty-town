@@ -1,5 +1,8 @@
 ﻿using Assets.Server;
+using Assets.Server.Api;
+using Assets.Server.ApiModels;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -66,7 +69,7 @@ public class AssetMenuController : MonoBehaviour
         // work out which menu options are available
         bool hasJobs = asset.Jobs.Count > 0;
         bool hasInspections = asset.Inspections.Count > 0;
-        bool hasDefects = asset.Defects.Count > 0;
+        bool hasDefects = asset.TempDefects.Count > 0;
 
         var jobsButtonComponent = CloseJobsButton.GetComponent<Button>();
         jobsButtonComponent.interactable = ApplicationGlobals.JobFixAllowed && hasJobs;
@@ -143,21 +146,54 @@ public class AssetMenuController : MonoBehaviour
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
         // get all job ids on asset
-        var jobs = asset.Jobs.ToList();
+        var jobs = asset.Jobs.Values.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
 
-        // do web request
-        yield return new WaitForSeconds(jobs.Count * 3.0f);
+        float startTime = Time.time;
+
+        // complete jobs
+        foreach (var job in jobs)
+        {
+            var itemEdit = new ItemEditWebRequestModel("Live", job.Signature);
+            itemEdit.SetAttributes(ApplicationGlobals.JobFixAttributes);
+            var jobUpdateClient = new JobUpdateClient(ApplicationGlobals.ExtendedApiUrl, ApplicationGlobals.ApiToken, job.ItemId, itemEdit);
+            yield return jobUpdateClient.Send();
+
+            if (jobUpdateClient.Error != null)
+            {
+                // blacklist the job item from further updates
+                _levelController.GameStore.AddBlacklistedItemId(job.ItemId);
+                Debug.Log("Failed to update job '" + job.ItemId + "' Error: " + jobUpdateClient.Error.Message);
+            }
+            else if (jobUpdateClient.Response == null)
+            {
+                // blacklist the job item from further updates
+                _levelController.GameStore.AddBlacklistedItemId(job.ItemId);
+                Debug.Log("Failed to update job '" + job.ItemId + "' Error: response was null");
+            }
+            else
+            {
+                Debug.Log("Job was completed: " + jobUpdateClient.Response?.JobItem?.ItemId);
+            }
+        }
+
+        float timeRemaining = (ApplicationGlobals.ReportingTime * jobs.Count) - (Time.time - startTime);
+
+        // wait for min amount
+        if (timeRemaining > 0)
+        {
+            yield return new WaitForSeconds(timeRemaining);
+        }
 
         // remove all jobs from the asset
-        foreach (var pair in jobs)
+        foreach (var job in jobs)
         {
-            _levelController.GameStore.RemoveJob(pair.Value.ItemId);
+            _levelController.GameStore.RemoveJob(job.ItemId);
 
             // add to the score
-            _levelController.ScoreJob(pair.Value);
+            _levelController.ScoreJob(job);
         }
 
         // unlock the person
@@ -178,21 +214,54 @@ public class AssetMenuController : MonoBehaviour
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
         // get all inspection ids on asset
-        var inspections = asset.Inspections.ToList();
+        var inspections = asset.Inspections.Values.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
 
-        // do web request
-        yield return new WaitForSeconds(inspections.Count * 3.0f);
+        float startTime = Time.time;
 
-        // remove all inspections from the asset
-        foreach (var pair in inspections)
+        // complete inspections
+        foreach (var inspection in inspections)
         {
-            _levelController.GameStore.RemoveInspection(pair.Value.ItemId);
+            var itemEdit = new ItemEditWebRequestModel("Live", inspection.Signature);
+            itemEdit.SetAttributes(ApplicationGlobals.InspectionCompleteAttributes);
+            var inspectionUpdateClient = new InspectionUpdateClient(ApplicationGlobals.ExtendedApiUrl, ApplicationGlobals.ApiToken, inspection.ItemId, itemEdit);
+            yield return inspectionUpdateClient.Send();
+
+            if (inspectionUpdateClient.Error != null)
+            {
+                // blacklist the inspection item from further updates
+                _levelController.GameStore.AddBlacklistedItemId(inspection.ItemId);
+                Debug.Log("Failed to update inspection '" + inspection.ItemId + "' Error: " + inspectionUpdateClient.Error.Message);
+            }
+            else if (inspectionUpdateClient.Response == null)
+            {
+                // blacklist the inspection item from further updates
+                _levelController.GameStore.AddBlacklistedItemId(inspection.ItemId);
+                Debug.Log("Failed to update inspection '" + inspection.ItemId + "' Error: response was null");
+            }
+            else
+            {
+                Debug.Log("Inspection was completed: " + inspectionUpdateClient.Response?.InspectionItem?.ItemId);
+            }
+        }
+
+        float timeRemaining = (ApplicationGlobals.ReportingTime * inspections.Count) - (Time.time - startTime);
+
+        // wait for min of 3 seconds per inspection
+        if (timeRemaining > 0)
+        {
+            yield return new WaitForSeconds(timeRemaining);
+        }
+        
+        // remove all inspections from the asset
+        foreach (var inspection in inspections)
+        {
+            _levelController.GameStore.RemoveInspection(inspection.ItemId);
 
             // add to the score
-            _levelController.ScoreInspection(pair.Value);
+            _levelController.ScoreInspection(inspection);
         }
 
         // unlock the person
@@ -212,22 +281,54 @@ public class AssetMenuController : MonoBehaviour
         // get the asset
         var asset = _levelController.GameStore.GetAsset(_assetItemId);
 
-        // get all defect ids on asset
-        var defects = asset.Defects.ToList();
+        // get all defects on asset
+        var defects = asset.TempDefects.Values.ToList();
 
         // display mobile
         _alloyMobileController.ShowMobile();
 
-        // do web request
-        yield return new WaitForSeconds(3.0f);
+        var startTime = Time.time;
+
+        // complete defects
+        foreach (var defect in defects)
+        {
+            var itemCreate = new ItemCreateWebRequestModel(ApplicationGlobals.DefectCreateDesignCode, ApplicationGlobals.DefectCreateCollection);
+            itemCreate.SetAttributes(ApplicationGlobals.DefectCreateAttributes);
+            itemCreate.Parents.Add("attributes_defectsAssignableDefects", new List<string> { defect.ParentAssetItemId });
+            var defectClient = new DefectCreateClient(ApplicationGlobals.ExtendedApiUrl, ApplicationGlobals.ApiToken, itemCreate);
+            
+            yield return defectClient.Send();
+            
+            // check if we made the defect
+            if (defectClient.Error != null)
+            {
+                Debug.Log("Failed to create defect... Error: " + defectClient.Error.Message);
+            }
+            else if (defectClient.Response == null)
+            {
+                Debug.Log("Failed to create defect... Error: response was null");
+            }
+            else
+            {
+                Debug.Log("A wild defect evolved to reported: " + defectClient.Response?.DefectItem?.ItemId);
+            }
+        }
+
+        float timeRemaining = (ApplicationGlobals.ReportingTime * defects.Count) - (Time.time - startTime);
+
+        // wait for min required time
+        if (timeRemaining > 0)
+        {
+            yield return new WaitForSeconds(timeRemaining);
+        }
 
         // remove all defects from the asset
-        foreach (var pair in defects)
+        foreach (var defect in defects)
         {
-            _levelController.GameStore.RemoveDefect(pair.Value.ItemId);
+            _levelController.GameStore.RemoveTempDefect(defect.TempId);
 
             // add to the score
-            _levelController.ScoreDefect(pair.Value);
+            _levelController.ScoreDefect(defect);
         }
 
         // unlock the person

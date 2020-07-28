@@ -8,7 +8,8 @@ namespace Assets.Server.Game
         private IDictionary<string, AssetModel> _assets = new Dictionary<string, AssetModel>();
         private IDictionary<string, JobModel> _jobs = new Dictionary<string, JobModel>();
         private IDictionary<string, InspectionModel> _inspections = new Dictionary<string, InspectionModel>();
-        private IDictionary<string, DefectModel> _defects = new Dictionary<string, DefectModel>();
+        private IDictionary<string, TempDefectModel> _tempDefects = new Dictionary<string, TempDefectModel>();
+        private ISet<string> _blacklistItemIds = new HashSet<string>();
 
         public AssetModel GetAsset(string itemId)
         {
@@ -25,9 +26,19 @@ namespace Assets.Server.Game
             return _inspections.ContainsKey(itemId) ? _inspections[itemId] : null;
         }
 
-        public DefectModel GetDefect(string itemId)
+        public TempDefectModel GetTempDefect(string tempId)
         {
-            return _defects.ContainsKey(itemId) ? _defects[itemId] : null;
+            return _tempDefects.ContainsKey(tempId) ? _tempDefects[tempId] : null;
+        }
+
+        public bool IsBlacklistedItemId(string itemId)
+        {
+            return _blacklistItemIds.Contains(itemId);
+        }
+
+        public void AddBlacklistedItemId(string itemId)
+        {
+            _blacklistItemIds.Add(itemId);
         }
 
         public void AddAsset(AssetModel model)
@@ -88,24 +99,24 @@ namespace Assets.Server.Game
             asset.GetAssetController().SetInspect(true);
         }
 
-        public void AddDefect(DefectModel model)
+        public void AddTempDefect(TempDefectModel model)
         {
             // check asset exists
             if (!_assets.ContainsKey(model.ParentAssetItemId))
             {
-                throw new Exception("parent asset item id not present, cannot add defect: " + model.ItemId);
+                throw new Exception("parent asset item id not present, cannot add temp defect: " + model.TempId);
             }
             var asset = _assets[model.ParentAssetItemId];
 
             // remove existing defect if we already have it
-            if (_defects.ContainsKey(model.ItemId))
+            if (_tempDefects.ContainsKey(model.TempId))
             {
-                RemoveDefect(model.ItemId);
+                RemoveTempDefect(model.TempId);
             }
 
             // add the defect to global dictionary and assets dictionary
-            _defects.Add(model.ItemId, model);
-            asset.Defects.Add(model.ItemId, model);
+            _tempDefects.Add(model.TempId, model);
+            asset.TempDefects.Add(model.TempId, model);
 
             // set animation to the asset as we have at least 1 inspection
             asset.GetAssetController().SetDefect(true, false);
@@ -199,24 +210,24 @@ namespace Assets.Server.Game
             _inspections.Remove(itemId);
         }
 
-        public void RemoveDefect(string itemId)
+        public void RemoveTempDefect(string tempId)
         {
             // check we have an defect to remove
-            if (!_defects.ContainsKey(itemId))
+            if (!_tempDefects.ContainsKey(tempId))
             {
                 return;
             }
-            var defect = _defects[itemId];
+            var defect = _tempDefects[tempId];
 
             // check we have a parent asset
             if (!_assets.ContainsKey(defect.ParentAssetItemId))
             {
-                throw new Exception("defect has no parent asset, cannot remove: " + itemId);
+                throw new Exception("temp defect has no parent asset, cannot remove: " + tempId);
             }
 
             // get the parent asset and remove the defect
             var asset = _assets[defect.ParentAssetItemId];
-            asset.Defects.Remove(itemId);
+            asset.TempDefects.Remove(tempId);
 
             // if the asset has no more defects, remove animation
             if (asset.Inspections.Count == 0)
@@ -225,7 +236,12 @@ namespace Assets.Server.Game
             }
 
             // remove the defect from the dictionary
-            _inspections.Remove(itemId);
+            _tempDefects.Remove(tempId);
+        }
+
+        public void RemoveBlacklistedItemId(string itemId)
+        {
+            _blacklistItemIds.Remove(itemId);
         }
     }
 }

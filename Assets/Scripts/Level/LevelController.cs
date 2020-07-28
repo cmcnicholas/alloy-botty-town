@@ -19,7 +19,7 @@ public class LevelController : MonoBehaviour
     private HudCounterController _timerCounterController;
     private HudCounterController _scoreCounterController;
     private IList<InspectionModel> _scoredInspections = new List<InspectionModel>();
-    private IList<DefectModel> _scoredDefects = new List<DefectModel>();
+    private IList<TempDefectModel> _scoredDefects = new List<TempDefectModel>();
     private IList<JobModel> _scoredJobs = new List<JobModel>();
     private float _timeLeft;
     private float _startColourTilingOffsetY;
@@ -82,7 +82,7 @@ public class LevelController : MonoBehaviour
         RecalculateScore();
     }
 
-    public void ScoreDefect(DefectModel defect)
+    public void ScoreDefect(TempDefectModel defect)
     {
         _scoredDefects.Add(defect);
         RecalculateScore();

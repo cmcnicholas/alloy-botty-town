@@ -5766,10 +5766,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 988dc09943d017a4bbb8e53f84dcda68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MinSpawnTime: 60
-  MaxSpawnTime: 120
-  MinSpawnRange: 50
-  MaxSpawnRange: 300
 --- !u!1 &221994976
 GameObject:
   m_ObjectHideFlags: 0
@@ -20194,6 +20190,8 @@ MonoBehaviour:
   PlayerController: {fileID: 218800040}
   MainMenuCamera: {fileID: 511009163}
   MainMenuResumeButton: {fileID: 221994976}
+  MainMenuTimeTrialButton: {fileID: 1895223383}
+  MainMenuFreePlayButton: {fileID: 2010766579}
 --- !u!1 &1153747939
 GameObject:
   m_ObjectHideFlags: 0

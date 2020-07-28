@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Server;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 
@@ -8,14 +9,20 @@ public class MainMenuController : MonoBehaviour
     public GameObject PlayerController;
     public GameObject MainMenuCamera;
     public GameObject MainMenuResumeButton;
+    public GameObject MainMenuTimeTrialButton;
+    public GameObject MainMenuFreePlayButton;
     private LevelController _levelController;
     private Button _mainMenuResumeButton;
+    private Button _mainMenuTimeTrialButton;
+    private Button _mainMenuFreePlayButton;
 
     // Start is called before the first frame update
     void Start()
     {
         _levelController = PlayerController.GetComponent<LevelController>();
         _mainMenuResumeButton = MainMenuResumeButton.GetComponent<Button>();
+        _mainMenuTimeTrialButton = MainMenuTimeTrialButton.GetComponent<Button>();
+        _mainMenuFreePlayButton = MainMenuFreePlayButton.GetComponent<Button>();
 
         // default main menu, no resume
         _mainMenuResumeButton.interactable = false;
@@ -24,6 +31,9 @@ public class MainMenuController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        _mainMenuTimeTrialButton.interactable = ApplicationGlobals.ApiTokenVerified;
+        _mainMenuFreePlayButton.interactable = ApplicationGlobals.ApiTokenVerified;
+
         if (Input.GetKey("escape") && PlayerController.activeInHierarchy)
         {
             // if the player controller is active then we was playing

@@ -7,6 +7,12 @@ namespace Assets.Server
 {
     public static class ApplicationGlobals
     {
+        // these fields are global flags for ease of use
+        public static string FatalError;
+        public static bool ApiTokenVerified = false;
+        public static float ReportingTime = 3f;
+
+        // the rest are loaded from the config.json file
         public static string ApiUrl;
         public static string ExtendedApiUrl;
         public static string ApiToken;
@@ -17,6 +23,10 @@ namespace Assets.Server
         public static string DefectCreateDesignCode;
         public static string DefectCreateCollection;
         public static JObject DefectCreateAttributes;
+
+        public static JObject JobFixAttributes;
+
+        public static JObject InspectionCompleteAttributes;
 
         public static float DayNightCycleSeconds;
 
@@ -35,17 +45,20 @@ namespace Assets.Server
         public static string ScoreSaveNameAttributeCode;
         public static string ScoreSaveScoreAttributeCode;
 
+        public static string GetConfigFilePath()
+        {
+            return Path.Combine(Application.persistentDataPath, "bottytown.config");
+        }
+
         public static void Init()
         {
-            string configPath = Path.Combine(Application.persistentDataPath, "bottytown.config");
-
             // if we don't have a config then make a dummy
-            if (!File.Exists(configPath))
+            if (!File.Exists(GetConfigFilePath()))
             {
-                File.WriteAllText(configPath, JsonConvert.SerializeObject(Config.Default, Formatting.Indented));
+                File.WriteAllText(GetConfigFilePath(), JsonConvert.SerializeObject(Config.Default, Formatting.Indented));
             }
 
-            Config configJson = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+            Config configJson = JsonConvert.DeserializeObject<Config>(File.ReadAllText(GetConfigFilePath()));
 
             // set globals with fallbacks
             ApiUrl = configJson?.ApiUrl ?? Config.Default.ApiUrl;
@@ -58,6 +71,10 @@ namespace Assets.Server
             DefectCreateDesignCode = configJson?.DefectCreateDesignCode ?? Config.Default.DefectCreateDesignCode;
             DefectCreateCollection = configJson?.DefectCreateCollection ?? Config.Default.DefectCreateCollection;
             DefectCreateAttributes = configJson?.DefectCreateAttributes ?? Config.Default.DefectCreateAttributes;
+
+            JobFixAttributes = configJson?.JobFixAttributes ?? Config.Default.JobFixAttributes;
+
+            InspectionCompleteAllowed = configJson?.InspectionCompleteAllowed ?? Config.Default.InspectionCompleteAllowed;
 
             DayNightCycleSeconds = Mathf.Max(5f, configJson?.DayNightCycleSeconds ?? Config.Default.DayNightCycleSeconds);
 
@@ -92,8 +109,18 @@ namespace Assets.Server
                 DefectCreateCollection = "Live",
                 DefectCreateAttributes = new JObject
                 {
-                    { "attributes_defectsDefectNumber", JToken.FromObject(8008135) },
-                    { "attributes_exampleDefectsDangerous", JToken.FromObject(true) }
+                    { "attributes_defectsDefectNumber", new JValue(8008135) },
+                    { "attributes_exampleDefectsDangerous", new JValue(true) }
+                },
+
+                JobFixAttributes = new JObject
+                {
+                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c72")) },
+                },
+
+                InspectionCompleteAttributes = new JObject
+                {
+                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c72")) },
                 },
 
                 DayNightCycleSeconds = 60f,
@@ -124,6 +151,10 @@ namespace Assets.Server
             public string DefectCreateDesignCode;
             public string DefectCreateCollection;
             public JObject DefectCreateAttributes;
+
+            public JObject JobFixAttributes;
+
+            public JObject InspectionCompleteAttributes;
 
             public float DayNightCycleSeconds;
 

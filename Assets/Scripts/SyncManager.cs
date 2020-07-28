@@ -7,6 +7,7 @@ using Assets.Server.Projection;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SyncManager : MonoBehaviour
 {
@@ -34,22 +35,44 @@ public class SyncManager : MonoBehaviour
         // go sleep, helps startup
         yield return new WaitForSeconds(2.0f);
 
-        // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
-        var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(ApplicationGlobals.CentreLat, ApplicationGlobals.CentreLng);
-        var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
+        // go check session to see if we can get in
+        var sessionMeClient = new SessionMeClient(ApplicationGlobals.ApiUrl, ApplicationGlobals.ApiToken);
+        yield return sessionMeClient.Send();
 
-        // setup the prefab mapper (maps items to models of stuff)
-        var itemToGameObjectFactory = AssetToGameObjectFactory.Create(gameObject, stageCoordinateProjector);
-
-        while (true)
+        if (sessionMeClient.Error != null)
         {
-            // recursive coroutines start here
-            yield return StartCoroutine(SyncAssetsCoroutine(1, itemToGameObjectFactory));
-            yield return StartCoroutine(SyncJobsCoroutine(1));
-            yield return StartCoroutine(SyncInspectionsCoroutine(1));
+            Debug.Log("Failed to get session for api key '" + ApplicationGlobals.ApiToken + "' Error: " + sessionMeClient.Error.Message);
+            ApplicationGlobals.FatalError = "FAILED TO VERIFY API KEY, CHECK YOUR .CONFIG FILE @ " + ApplicationGlobals.GetConfigFilePath();
+            SceneManager.LoadScene("FatalErrorScene");
+        }
+        else if (sessionMeClient.Response == null)
+        {
+            Debug.Log("Failed to get session for api key '" + ApplicationGlobals.ApiToken + "' Error: response was null");
+            ApplicationGlobals.FatalError = "FAILED TO VERIFY API KEY, (NO SERVER RESPONSE) CHECK YOUR .CONFIG FILE @ " + ApplicationGlobals.GetConfigFilePath();
+            SceneManager.LoadScene("FatalErrorScene");
+        }
+        else
+        {
+            // token looks good
+            ApplicationGlobals.ApiTokenVerified = true;
 
-            Debug.Log($"Finished syncing @{Time.realtimeSinceStartup}s, sleeping...");
-            yield return new WaitForSeconds(5.0f);
+            // calculate the centroid in metres and setup the projector (maps items to positions on the screen)
+            var stageCentroidMetres = WebMercatorProjection.LatLonToMeters(ApplicationGlobals.CentreLat, ApplicationGlobals.CentreLng);
+            var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
+
+            // setup the prefab mapper (maps items to models of stuff)
+            var itemToGameObjectFactory = AssetToGameObjectFactory.Create(gameObject, stageCoordinateProjector);
+
+            while (true)
+            {
+                // recursive coroutines start here
+                yield return StartCoroutine(SyncAssetsCoroutine(1, itemToGameObjectFactory));
+                yield return StartCoroutine(SyncJobsCoroutine(1));
+                yield return StartCoroutine(SyncInspectionsCoroutine(1));
+
+                Debug.Log($"Finished syncing @{Time.realtimeSinceStartup}s, sleeping...");
+                yield return new WaitForSeconds(5.0f);
+            }
         }
     }
 
@@ -77,8 +100,8 @@ public class SyncManager : MonoBehaviour
         {
             foreach (var jsonItem in aqsClient.Response.Results)
             {
-                // if we already have the asset then skip
-                if (_levelController.GameStore.GetAsset(jsonItem.ItemId) != null)
+                // if blacklisted then skip or if we already have the asset then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetAsset(jsonItem.ItemId) != null)
                 {
                     continue;
                 }
@@ -161,8 +184,8 @@ public class SyncManager : MonoBehaviour
                 {
                     continue;
                 }
-                // check the job already exists
-                if (_levelController.GameStore.GetJob(jsonItem.ItemId) != null)
+                // if blacklisted then skip or if we already have the job then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetJob(jsonItem.ItemId) != null)
                 {
                     continue;
                 }
@@ -244,8 +267,8 @@ public class SyncManager : MonoBehaviour
                 {
                     continue;
                 }
-                // check the inspection already exists
-                if (_levelController.GameStore.GetInspection(jsonItem.ItemId) != null)
+                // if blacklisted then skip or if we already have the inspection then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetInspection(jsonItem.ItemId) != null)
                 {
                     continue;
                 }
@@ -263,7 +286,6 @@ public class SyncManager : MonoBehaviour
                     continue;
                 }
                 // check the parent asset exists in our store
-                // TODO we could technically add it here if missing, we need to get the join attributes required
                 if (_levelController.GameStore.GetAsset(parentAssetJson.Item.ItemId) == null)
                 {
                     Debug.Log("Inspection parent asset has not been synced, skipping: " + jsonItem.ItemId);

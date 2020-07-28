@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: 9aa50aa2664bfd243b338b295e3d218b
+  - enabled: 1
+    path: Assets/Scenes/FatalErrorScene.unity
+    guid: 8240a991a7bf8ec4cbe704831ee62c0b
   m_configObjects: {}
