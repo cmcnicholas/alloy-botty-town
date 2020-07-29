@@ -12,18 +12,6 @@ namespace Assets.Server.Mapper
     /// </summary>
     public class PointToGameObjectMapper : AssetToGameObjectMapperBase
     {
-        private const string Tree01Prefab = "Tree01Prefab";
-        private const string Tree02Prefab = "Tree01Prefab";
-        private const string Tree03Prefab = "Tree01Prefab";
-        private const string Tree04Prefab = "Tree01Prefab";
-        private const string Tree05Prefab = "Tree05Prefab";
-        private const string Lamp01Prefab = "Lamp01Prefab";
-        private const string TrafficLight01Prefab = "TrafficLight01Prefab";
-        private const string Trash01Prefab = "Trash01Prefab";
-        private const string Trash02Prefab = "Trash02Prefab";
-        private const string Sign01Prefab = "Sign01Prefab";
-        private const string House01Prefab = "House01Prefab";
-
         private IDictionary<string, GameObject> _prefabs;
 
         public PointToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, IDictionary<string, GameObject> prefabs): base(stage, stageCoordProjector)
@@ -73,26 +61,30 @@ namespace Assets.Server.Mapper
 
         private string PrefabNameForItem(AssetModel item)
         {
-            switch (item.DesignCode)
+            // no design? use default
+            if (!ApplicationGlobals.PrefabReverseMapping.ContainsKey(item.DesignCode))
             {
-                case "designs_streetLights":
-                case "designs_otherStreetLights":
-                case "designs_signIlluminations":
-                case "designs_subwayLights":
-                    return Lamp01Prefab;
-                case "designs_bollards":
-                    return Sign01Prefab;
-                case "designs_feederPillars":
-                    return Trash01Prefab; // TODO something better here, more money $$$
-                case "designs_wasteContainers":
-                    return Trash01Prefab;
-                case "designs_trees":
-                    return Tree01Prefab; // TODO consistently randomize?
-                case "designs_nlpgPremises":
-                    return House01Prefab;
-                default:
-                    return "DefaultPrefab"; // no model
+                return ApplicationGlobals.PrefabDefault;
             }
+
+            // find any suitable prefabs
+            var suitablePrefabs = ApplicationGlobals.PrefabReverseMapping[item.DesignCode];
+            int prefabsCount = suitablePrefabs.Count;
+
+            // no suitable? use default
+            if (prefabsCount == 0)
+            {
+                return ApplicationGlobals.PrefabDefault;
+            }
+
+            // only 1? use it
+            if (prefabsCount == 1)
+            {
+                return suitablePrefabs[0];
+            }
+
+            // otherwise use a random prefab
+            return suitablePrefabs[UnityEngine.Random.Range(0, prefabsCount - 1)];
         }
     }
 }

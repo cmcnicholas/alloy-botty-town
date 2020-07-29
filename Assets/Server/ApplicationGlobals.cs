@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Server
@@ -44,6 +46,10 @@ namespace Assets.Server
         public static string ScoreSaveCollectionCode;
         public static string ScoreSaveNameAttributeCode;
         public static string ScoreSaveScoreAttributeCode;
+
+        public static string PrefabDefault;
+        public static IDictionary<string, IList<string>> PrefabMapping;
+        public static IDictionary<string, List<string>> PrefabReverseMapping; // maps dodi's to prefabs
 
         public static string GetConfigFilePath()
         {
@@ -92,6 +98,15 @@ namespace Assets.Server
             ScoreSaveCollectionCode = configJson?.ScoreSaveCollectionCode ?? Config.Default.ScoreSaveCollectionCode;
             ScoreSaveNameAttributeCode = configJson?.ScoreSaveNameAttributeCode ?? Config.Default.ScoreSaveNameAttributeCode;
             ScoreSaveScoreAttributeCode = configJson?.ScoreSaveScoreAttributeCode ?? Config.Default.ScoreSaveScoreAttributeCode;
+
+            PrefabMapping = configJson?.PrefabMapping ?? Config.Default.PrefabMapping;
+            PrefabDefault = configJson?.PrefabDefault ?? Config.Default.PrefabDefault;
+
+            // process reverse mapping for prefabs design -> prefab names
+            PrefabReverseMapping = PrefabMapping.
+                SelectMany(p => p.Value).
+                Distinct().
+                ToDictionary(d => d, d => PrefabMapping.Where(p => p.Value.Contains(d)).Select(p => p.Key).ToList());
         }
 
         private class Config
@@ -139,6 +154,102 @@ namespace Assets.Server
                 ScoreSaveCollectionCode = "Live",
                 ScoreSaveNameAttributeCode = "<attribute code of the custom attribute to save name to>",
                 ScoreSaveScoreAttributeCode = "<attribute code of the custom attribute to save score to>",
+
+                PrefabDefault = "DefaultPrefab",
+                PrefabMapping = new Dictionary<string, IList<string>>
+                {
+                    // list all available prefabs, expect users to add to any lists any custom designs
+                    // they want a prefab to be represented by. we can handle MULTIPLE prefabs for a 
+                    // single design code, we do this by randomising the prefab selected if the design
+                    // exists as a child of more than 1 prefab
+
+                    // start: trees
+                    {
+                        "Tree01Prefab",
+                        new List<string>
+                        {
+                            "designs_trees"
+                        }
+                    },
+                    {
+                        "Tree02Prefab",
+                        new List<string>
+                        {
+                            "designs_trees"
+                        }
+                    },
+                    {
+                        "Tree03Prefab",
+                        new List<string>
+                        {
+                            "designs_trees"
+                        }
+                    },
+                    {
+                        "Tree04Prefab",
+                        new List<string>
+                        {
+                            "designs_trees"
+                        }
+                    },
+                    {
+                        "Tree06Prefab",
+                        new List<string>
+                        {
+                            "designs_trees"
+                        }
+                    },
+
+                    // start: waste
+                    {
+                        "Trash01Prefab",
+                        new List<string>
+                        {
+                            "designs_wasteContainers",
+                            "designs_feederPillars"
+                        }
+                    },
+                    {
+                        "Trash02Prefab",
+                        new List<string>()
+                    },
+
+                    // start: lighting
+                    {
+                        "Lamp01Prefab",
+                        new List<string>
+                        {
+                            "designs_streetLights",
+                            "designs_otherStreetLights",
+                            "designs_signIlluminations",
+                            "designs_subwayLights"
+                        }
+                    },
+
+                    // start: signs
+                    {
+                        "Sign01Prefab",
+                        new List<string>
+                        {
+                            "designs_bollards"
+                        }
+                    },
+
+                    // start: structures
+                    {
+                        "House01Prefab",
+                        new List<string>
+                        {
+                            "designs_nlpgPremises"
+                        }
+                    },
+
+                    // start: traffic management
+                    {
+                        "TrafficLight01Prefab",
+                        new List<string>()
+                    },
+                },
             };
 
             public string ApiUrl;
@@ -172,6 +283,9 @@ namespace Assets.Server
             public string ScoreSaveCollectionCode;
             public string ScoreSaveNameAttributeCode;
             public string ScoreSaveScoreAttributeCode;
+
+            public string PrefabDefault;
+            public IDictionary<string, IList<string>> PrefabMapping;
         }
     }
 }
