@@ -51,6 +51,9 @@ namespace Assets.Server
         public static IDictionary<string, IList<string>> PrefabMapping;
         public static IDictionary<string, List<string>> PrefabReverseMapping; // maps dodi's to prefabs
 
+        public static Color MeshColourDefault;
+        public static IDictionary<string, Color> MeshColourMapping; // maps dodi's to colours
+
         public static string GetConfigFilePath()
         {
             return Path.Combine(Application.persistentDataPath, "bottytown.config");
@@ -107,6 +110,24 @@ namespace Assets.Server
                 SelectMany(p => p.Value).
                 Distinct().
                 ToDictionary(d => d, d => PrefabMapping.Where(p => p.Value.Contains(d)).Select(p => p.Key).ToList());
+
+            MeshColourDefault = configJson?.MeshColourDefault != null ? FloatArrayToColour(configJson?.MeshColourDefault) : FloatArrayToColour(Config.Default.MeshColourDefault);
+            MeshColourMapping = configJson?.MeshColourMapping != null ? 
+                configJson?.MeshColourMapping.ToDictionary(k => k.Key, v => FloatArrayToColour(v.Value)) : 
+                Config.Default.MeshColourMapping.ToDictionary(k => k.Key, v => FloatArrayToColour(v.Value));
+        }
+
+        private static Color FloatArrayToColour(float[] arr)
+        {
+            if (arr == null)
+            {
+                throw new System.Exception("failed to convert float array to colour, array was null");
+            }
+            if (arr.Length < 3 || arr.Length > 4)
+            {
+                throw new System.Exception("failed to convert float array to colour, array was not of length 3 or 4");
+            }
+            return new Color(Mathf.Clamp(arr[0], 0f, 1f), Mathf.Clamp(arr[1], 0f, 1f), Mathf.Clamp(arr[2], 0f, 1f), arr.Length == 4 ? Mathf.Clamp(arr[3], 0f, 1f) : 1f);
         }
 
         private class Config
@@ -250,6 +271,13 @@ namespace Assets.Server
                         new List<string>()
                     },
                 },
+
+                // defaults for polygons
+                MeshColourDefault = new float[] { 0.254717f, 0.254717f, 0.254717f },
+                MeshColourMapping = new Dictionary<string, float[]>
+                {
+                    { "designs_nlpgPremises", new float[] { 0.2202741f, 0.4245283f, 0.2484958f } }
+                }
             };
 
             public string ApiUrl;
@@ -286,6 +314,9 @@ namespace Assets.Server
 
             public string PrefabDefault;
             public IDictionary<string, IList<string>> PrefabMapping;
+
+            public float[] MeshColourDefault;
+            public IDictionary<string, float[]> MeshColourMapping;
         }
     }
 }

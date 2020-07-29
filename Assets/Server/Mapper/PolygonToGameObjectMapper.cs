@@ -40,9 +40,17 @@ namespace Assets.Server.Mapper
 
             // check we have enough coordinates
             int coordinateCount = outerPolygon.Coordinates.Count;
-            if (coordinateCount <= 4)
+            if (coordinateCount <= 3)
             {
                 return null;
+            }
+
+            // if the polygon from geojson is closed (should be to follow spec) unclose it? what unity?
+            // we do this by reducing the coordinate count because, tight loading loops and allocating
+            // extra resource is for dummies...
+            if (outerPolygon.Coordinates.Last().Equals(outerPolygon.Coordinates.First()))
+            {
+                coordinateCount -= 1;
             }
 
             // get the vertices of the polygon in the game world
@@ -73,11 +81,16 @@ namespace Assets.Server.Mapper
             }
 
             // calculate triangles for the mesh (caveat: stolen from some horrendous unity post)
-            var triangulator = new Triangulator(System.Array.ConvertAll<Vector3, Vector2>(vertices, v => new Vector2(v.x, v.z)));
+            var triangulator = new Triangulator(Array.ConvertAll<Vector3, Vector2>(vertices, v => new Vector2(v.x, v.z)));
+
+            // get the per design colour or the default
+            var colour = ApplicationGlobals.MeshColourMapping.ContainsKey(asset.DesignCode) ? 
+                ApplicationGlobals.MeshColourMapping[asset.DesignCode] : 
+                ApplicationGlobals.MeshColourDefault;
 
             // Generate a color for each vertex
             var colors = Enumerable.Range(0, coordinateCount)
-                .Select(i => UnityEngine.Random.ColorHSV())
+                .Select(i => colour)
                 .ToArray();
 
             // create a mesh from the points
@@ -102,6 +115,7 @@ namespace Assets.Server.Mapper
             // the way we render the poly
             var renderer = assetGameObject.AddComponent<MeshRenderer>();
             renderer.material = _groundMaterial;
+            renderer.material.color = colour;
 
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
             var collider = assetGameObject.AddComponent<MeshCollider>();

@@ -56,10 +56,16 @@ namespace Assets.Server.Mapper
 
             // make a new game object, we will draw programatically
             var assetGameObject = new GameObject();
+            
+            // get the per design colour or the default
+            var colour = ApplicationGlobals.MeshColourMapping.ContainsKey(asset.DesignCode) ?
+                ApplicationGlobals.MeshColourMapping[asset.DesignCode] :
+                ApplicationGlobals.MeshColourDefault;
 
             // add the renderer to the game object
             var renderer = assetGameObject.AddComponent<LineRenderer>();
             renderer.material = _roadMaterial;
+            renderer.material.color = colour;
             renderer.startWidth = 10.0f; 
             renderer.endWidth = 10.0f;
 
