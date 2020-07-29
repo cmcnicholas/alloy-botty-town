@@ -16,6 +16,8 @@ public class AssetMenuController : MonoBehaviour
     public GameObject RegisterDefectButton;
     public GameObject PlayerController;
     public GameObject AlloyMobile;
+    public GameObject AssetTitleText;
+    public GameObject AssetSubtitleText;
     private FirstPersonController _firstPersonController;
     private AlloyMobileController _alloyMobileController;
     private LevelController _levelController;
@@ -60,6 +62,10 @@ public class AssetMenuController : MonoBehaviour
         {
             return;
         }
+
+        // set the title/subtitle
+        AssetTitleText.GetComponent<Text>().text = string.IsNullOrWhiteSpace(asset.Title) ? "NO SUBTITLE" : asset.Title;
+        AssetSubtitleText.GetComponent<Text>().text = string.IsNullOrWhiteSpace(asset.Subtitle) ? "NO SUBTITLE" : asset.Subtitle;
 
         // set state and update menu visually
         _assetItemId = assetItemId;
