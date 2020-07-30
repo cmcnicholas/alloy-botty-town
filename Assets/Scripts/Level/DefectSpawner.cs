@@ -33,7 +33,14 @@ public class DefectSpawner : MonoBehaviour
         if (ApplicationGlobals.DefectSpawn && _nextSpawn < Time.time)
         {
             var hitColliders = Physics.OverlapSphere(transform.position, Random.Range(ApplicationGlobals.DefectSpawnMinRange, ApplicationGlobals.DefectSpawnMaxRange));
-            var assetControllers = hitColliders.Select(h => h.transform.parent?.GetComponent<AssetController>()).Where(a => a != null).ToList();
+            var assetControllers = hitColliders.
+                // get all the asset controller components off the hits (if possible)
+                Select(h => h.transform.parent?.GetComponent<AssetController>()).
+                // filter out hits with no controller
+                Where(a => a != null).
+                // filter out blacklisted items
+                Where(a => !_levelController.GameStore.IsBlacklistedItemId(a.ItemId)).
+                ToList();
 
             // if nothing to defect on then wait a small amount and retry
             if (assetControllers.Count == 0)

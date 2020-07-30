@@ -11,7 +11,9 @@ public class MainMenuController : MonoBehaviour
     public GameObject MainMenuResumeButton;
     public GameObject MainMenuTimeTrialButton;
     public GameObject MainMenuFreePlayButton;
+    public GameObject AssetMenuCanvas;
     private LevelController _levelController;
+    private AssetMenuController _assetMenuController;
     private Button _mainMenuResumeButton;
     private Button _mainMenuTimeTrialButton;
     private Button _mainMenuFreePlayButton;
@@ -23,6 +25,7 @@ public class MainMenuController : MonoBehaviour
         _mainMenuResumeButton = MainMenuResumeButton.GetComponent<Button>();
         _mainMenuTimeTrialButton = MainMenuTimeTrialButton.GetComponent<Button>();
         _mainMenuFreePlayButton = MainMenuFreePlayButton.GetComponent<Button>();
+        _assetMenuController = AssetMenuCanvas.GetComponent<AssetMenuController>();
 
         // default main menu, no resume
         _mainMenuResumeButton.interactable = false;
@@ -36,6 +39,9 @@ public class MainMenuController : MonoBehaviour
 
         if (Input.GetKey("escape") && PlayerController.activeInHierarchy)
         {
+            // hide the asset menu
+            _assetMenuController.CloseMenu();
+
             // if the player controller is active then we was playing
             ShowMenu(PlayerController.activeInHierarchy);
         }

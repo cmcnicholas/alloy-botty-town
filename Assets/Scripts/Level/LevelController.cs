@@ -9,15 +9,17 @@ public class LevelController : MonoBehaviour
     public GameObject GameOver;
     public GameObject TimerCounter;
     public GameObject ScoreCounter;
+    public GameObject AssetMenuCanvas;
     public int WarnSecondsRemaining;
     public float WarnSecondsRemainingColourOffsetY = 0.7f;
-    public int LevelTime = 300;
+    public int LevelTime = 15;
     public int LevelScore = 0;
     public bool IsFreePlay = false;
     private GameOverController _gameOverController;
     private LevelSoundEffectsController _levelSoundEffectsController;
     private HudCounterController _timerCounterController;
     private HudCounterController _scoreCounterController;
+    private AssetMenuController _assetMenuController;
     private IList<InspectionModel> _scoredInspections = new List<InspectionModel>();
     private IList<TempDefectModel> _scoredDefects = new List<TempDefectModel>();
     private IList<JobModel> _scoredJobs = new List<JobModel>();
@@ -39,6 +41,7 @@ public class LevelController : MonoBehaviour
         _levelSoundEffectsController = GetComponent<LevelSoundEffectsController>();
         _timerCounterController = TimerCounter.GetComponent<HudCounterController>();
         _scoreCounterController = ScoreCounter.GetComponent<HudCounterController>();
+        _assetMenuController = AssetMenuCanvas.GetComponent<AssetMenuController>();
 
         // set the time left
         _timeLeft = LevelTime;
@@ -56,6 +59,8 @@ public class LevelController : MonoBehaviour
 
         if (_timeLeft <= 0f)
         {
+            // remove HUD first then open game over
+            _assetMenuController.CloseMenu();
             _gameOverController.ShowScreen();
             return;
         }

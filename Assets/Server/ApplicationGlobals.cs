@@ -83,7 +83,7 @@ namespace Assets.Server
 
             JobFixAttributes = configJson?.JobFixAttributes ?? Config.Default.JobFixAttributes;
 
-            InspectionCompleteAllowed = configJson?.InspectionCompleteAllowed ?? Config.Default.InspectionCompleteAllowed;
+            InspectionCompleteAttributes = configJson?.InspectionCompleteAttributes ?? Config.Default.InspectionCompleteAttributes;
 
             DayNightCycleSeconds = Mathf.Max(5f, configJson?.DayNightCycleSeconds ?? Config.Default.DayNightCycleSeconds);
 
@@ -151,12 +151,12 @@ namespace Assets.Server
 
                 JobFixAttributes = new JObject
                 {
-                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c72")) },
+                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c76")) },
                 },
 
                 InspectionCompleteAttributes = new JObject
                 {
-                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c72")) },
+                    { "attributes_tasksStatus", new JArray(new JValue("5bc5bdd281d088d177342c76")) },
                 },
 
                 DayNightCycleSeconds = 60f,

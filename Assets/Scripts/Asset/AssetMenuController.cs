@@ -88,6 +88,13 @@ public class AssetMenuController : MonoBehaviour
         _levelSoundEffectsController.PlayMenuOpen();
     }
 
+    public void CloseMenu()
+    {
+        _assetItemId = null;
+        AssetMenu.SetActive(false);
+        _firstPersonController.SetLocked(false);
+    }
+
     public void OnCompleteJobsPressed()
     {
         // paranoid check
@@ -138,9 +145,7 @@ public class AssetMenuController : MonoBehaviour
 
     public void OnClosePressed()
     {
-        _assetItemId = null;
-        AssetMenu.SetActive(false);
-        _firstPersonController.SetLocked(false);
+        CloseMenu();
 
         // select menu close
         _levelSoundEffectsController.PlayMenuClosed();
@@ -162,6 +167,9 @@ public class AssetMenuController : MonoBehaviour
         // complete jobs
         foreach (var job in jobs)
         {
+            // blacklist the job item from further updates
+            _levelController.GameStore.AddBlacklistedItemId(job.ItemId);
+
             var itemEdit = new ItemEditWebRequestModel("Live", job.Signature);
             itemEdit.SetAttributes(ApplicationGlobals.JobFixAttributes);
             var jobUpdateClient = new JobUpdateClient(ApplicationGlobals.ExtendedApiUrl, ApplicationGlobals.ApiToken, job.ItemId, itemEdit);
@@ -169,14 +177,10 @@ public class AssetMenuController : MonoBehaviour
 
             if (jobUpdateClient.Error != null)
             {
-                // blacklist the job item from further updates
-                _levelController.GameStore.AddBlacklistedItemId(job.ItemId);
                 Debug.Log("Failed to update job '" + job.ItemId + "' Error: " + jobUpdateClient.Error.Message);
             }
             else if (jobUpdateClient.Response == null)
             {
-                // blacklist the job item from further updates
-                _levelController.GameStore.AddBlacklistedItemId(job.ItemId);
                 Debug.Log("Failed to update job '" + job.ItemId + "' Error: response was null");
             }
             else
@@ -230,6 +234,9 @@ public class AssetMenuController : MonoBehaviour
         // complete inspections
         foreach (var inspection in inspections)
         {
+            // blacklist the inspection item from further updates
+            _levelController.GameStore.AddBlacklistedItemId(inspection.ItemId);
+
             var itemEdit = new ItemEditWebRequestModel("Live", inspection.Signature);
             itemEdit.SetAttributes(ApplicationGlobals.InspectionCompleteAttributes);
             var inspectionUpdateClient = new InspectionUpdateClient(ApplicationGlobals.ExtendedApiUrl, ApplicationGlobals.ApiToken, inspection.ItemId, itemEdit);
@@ -237,14 +244,10 @@ public class AssetMenuController : MonoBehaviour
 
             if (inspectionUpdateClient.Error != null)
             {
-                // blacklist the inspection item from further updates
-                _levelController.GameStore.AddBlacklistedItemId(inspection.ItemId);
                 Debug.Log("Failed to update inspection '" + inspection.ItemId + "' Error: " + inspectionUpdateClient.Error.Message);
             }
             else if (inspectionUpdateClient.Response == null)
             {
-                // blacklist the inspection item from further updates
-                _levelController.GameStore.AddBlacklistedItemId(inspection.ItemId);
                 Debug.Log("Failed to update inspection '" + inspection.ItemId + "' Error: response was null");
             }
             else
