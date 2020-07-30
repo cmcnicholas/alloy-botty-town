@@ -64,11 +64,15 @@ namespace Assets.Server.Mapper
             var gameCoordLineString = new NetTopologySuite.Geometries.LineString(lineCoordinates);
             var bufferedPolygon = gameCoordLineString.Buffer(5.0, GeoAPI.Operations.Buffer.BufferStyle.CapSquare);
 
-            // update coordinate count, we're using the polygon now
-            coordinateCount = bufferedPolygon.Coordinates.Length;
+            // calculate the 3d vertices, these are lifted by a set value off the game floor plane
+            var vertices = bufferedPolygon.Coordinates.
+                // geojson polys are always closed, unity doesn't want this so drop last point
+                Take(bufferedPolygon.Coordinates.Length - 1).
+                Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y /* 2d y becomes 3d z */)).
+                ToArray();
 
-            // get the vertices of the polygon in the game world
-            var vertices = bufferedPolygon.Coordinates.Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y)).ToArray();
+            // update coordinate count, we're using the polygon now
+            coordinateCount = vertices.Length;
 
             // calculate the texture coordinates for the mesh (I don't really care, everything is flat)
             var uvs = new Vector2[coordinateCount];
