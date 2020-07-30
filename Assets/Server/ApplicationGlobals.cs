@@ -41,6 +41,8 @@ namespace Assets.Server
         public static bool JobFixAllowed;
         public static bool InspectionCompleteAllowed;
 
+        public static string TaskStatusTreatAsOpen;
+
         public static bool ScoreSaveAllowed;
         public static string ScoreSaveDesignCode;
         public static string ScoreSaveCollectionCode;
@@ -95,6 +97,8 @@ namespace Assets.Server
 
             JobFixAllowed = configJson?.JobFixAllowed ?? Config.Default.JobFixAllowed;
             InspectionCompleteAllowed = configJson?.InspectionCompleteAllowed ?? Config.Default.InspectionCompleteAllowed;
+
+            TaskStatusTreatAsOpen = configJson?.TaskStatusTreatAsOpen ?? Config.Default.TaskStatusTreatAsOpen;
 
             ScoreSaveAllowed = configJson?.ScoreSaveAllowed ?? Config.Default.ScoreSaveAllowed;
             ScoreSaveDesignCode = configJson?.ScoreSaveDesignCode ?? Config.Default.ScoreSaveDesignCode;
@@ -169,6 +173,8 @@ namespace Assets.Server
 
                 JobFixAllowed = true,
                 InspectionCompleteAllowed = true,
+
+                TaskStatusTreatAsOpen = "Open",
 
                 ScoreSaveAllowed = false,
                 ScoreSaveDesignCode = "<design code of the custom design to save scores to>",
@@ -305,6 +311,8 @@ namespace Assets.Server
 
             public bool JobFixAllowed;
             public bool InspectionCompleteAllowed;
+
+            public string TaskStatusTreatAsOpen;
         
             public bool ScoreSaveAllowed;
             public string ScoreSaveDesignCode;

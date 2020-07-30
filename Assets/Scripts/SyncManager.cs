@@ -165,6 +165,18 @@ public class SyncManager : MonoBehaviour
         aqs.SetPropertyString("dodiCode", "designInterfaces_jobs");
         aqs.SetPropertyObject("attributes", "[\"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
 
+        var aqsEquals = new AqsNode("Equals");
+        aqs.Children.Add(aqsEquals);
+
+        var aqsAttribute = new AqsNode("Attribute");
+        aqsAttribute.SetPropertyString("attributeCode", "attributes_taskStatusTypesTreatAs");
+        aqsAttribute.SetPropertyString("path", "root.attributes_tasksStatus.attributes_taskStatusesStatusType");
+        aqsEquals.Children.Add(aqsAttribute);
+
+        var aqsItemId = new AqsNode("String");
+        aqsItemId.SetPropertyObject("value", "[\"" + ApplicationGlobals.TaskStatusTreatAsOpen + "\"]");
+        aqsEquals.Children.Add(aqsItemId);
+
         // join to parent asset, we have to get an attribute so just get title, we use this later to find the query (should only be one anyway)
         string joinAttributeToMatch = "root^attributes_tasksAssignableTasks.attributes_itemsTitle";
         aqs.SetPropertyObject("joinAttributes", "[\"" + joinAttributeToMatch + "\"]");
@@ -259,6 +271,18 @@ public class SyncManager : MonoBehaviour
         var aqs = new AqsNode("Join");
         aqs.SetPropertyString("dodiCode", "designInterfaces_inspections");
         aqs.SetPropertyObject("attributes", "[\"attributes_itemsTitle\", \"attributes_itemsSubtitle\"]");
+
+        var aqsEquals = new AqsNode("Equals");
+        aqs.Children.Add(aqsEquals);
+
+        var aqsAttribute = new AqsNode("Attribute");
+        aqsAttribute.SetPropertyString("attributeCode", "attributes_taskStatusTypesTreatAs");
+        aqsAttribute.SetPropertyString("path", "root.attributes_tasksStatus.attributes_taskStatusesStatusType");
+        aqsEquals.Children.Add(aqsAttribute);
+
+        var aqsItemId = new AqsNode("String");
+        aqsItemId.SetPropertyObject("value", "[\"" + ApplicationGlobals.TaskStatusTreatAsOpen + "\"]");
+        aqsEquals.Children.Add(aqsItemId);
 
         // join to parent asset, we have to get an attribute so just get title, we use this later to find the query (should only be one anyway)
         string joinAttributeToMatch = "root^attributes_tasksAssignableTasks.attributes_itemsTitle";
