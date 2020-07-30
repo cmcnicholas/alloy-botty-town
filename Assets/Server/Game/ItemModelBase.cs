@@ -2,11 +2,11 @@
 {
     public abstract class ItemModelBase
     {
-        public string ItemId { get; }
-        public string DesignCode { get; }
-        public string Title { get; }
-        public string Subtitle { get; }
-        public string Signature { get; }
+        public string ItemId { get; set; }
+        public string DesignCode { get; set; }
+        public string Title { get; set; }
+        public string Subtitle { get; set; }
+        public string Signature { get; set; }
 
         public ItemModelBase(string itemId, string designCode, string title, string subtitle, string signature)
         {

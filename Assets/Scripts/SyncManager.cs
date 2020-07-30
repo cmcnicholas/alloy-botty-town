@@ -100,8 +100,8 @@ public class SyncManager : MonoBehaviour
         {
             foreach (var jsonItem in aqsClient.Response.Results)
             {
-                // if blacklisted then skip or if we already have the asset then skip
-                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetAsset(jsonItem.ItemId) != null)
+                // if blacklisted then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId))
                 {
                     continue;
                 }
@@ -110,6 +110,17 @@ public class SyncManager : MonoBehaviour
                 var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
                 var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
                 var geometry = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsGeometry")?.ValueAsGeoJson();
+
+                // if we already have the asset then skip but update stuff
+                var existingAsset = _levelController.GameStore.GetAsset(jsonItem.ItemId);
+                if (existingAsset != null)
+                {
+                    existingAsset.Signature = jsonItem.Signature;
+                    existingAsset.Title = title;
+                    existingAsset.Subtitle = subtitle;
+                    // TODO maybe try to recalculate the position etc. would need to destroy the asset controller and remake
+                    continue;
+                }
 
                 // if we don't have geom then be gone!
                 if (geometry == null)
@@ -184,9 +195,23 @@ public class SyncManager : MonoBehaviour
                 {
                     continue;
                 }
-                // if blacklisted then skip or if we already have the job then skip
-                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetJob(jsonItem.ItemId) != null)
+                // if blacklisted then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId))
                 {
+                    continue;
+                }
+
+                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
+                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
+
+                // if we already have the job then skip but update stuff
+                var existingJob = _levelController.GameStore.GetJob(jsonItem.ItemId);
+                if (existingJob != null)
+                {
+                    existingJob.Signature = jsonItem.Signature;
+                    existingJob.Title = title;
+                    existingJob.Subtitle = subtitle;
+                    // TODO maybe reassigned to different parent?
                     continue;
                 }
 
@@ -210,8 +235,6 @@ public class SyncManager : MonoBehaviour
                 }
 
                 // create item to keep and manage
-                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
-                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
                 var job = new JobModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.DesignCode, title, subtitle, jsonItem.Signature);
                 
                 // add to store
@@ -267,9 +290,23 @@ public class SyncManager : MonoBehaviour
                 {
                     continue;
                 }
-                // if blacklisted then skip or if we already have the inspection then skip
-                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId) || _levelController.GameStore.GetInspection(jsonItem.ItemId) != null)
+                // if blacklisted then skip
+                if (_levelController.GameStore.IsBlacklistedItemId(jsonItem.ItemId))
                 {
+                    continue;
+                }
+
+                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
+                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
+
+                // if we already have the inspection then skip but update stuff
+                var existingInspection = _levelController.GameStore.GetInspection(jsonItem.ItemId);
+                if (existingInspection != null)
+                {
+                    existingInspection.Signature = jsonItem.Signature;
+                    existingInspection.Title = title;
+                    existingInspection.Subtitle = subtitle;
+                    // TODO maybe reassigned to different parent?
                     continue;
                 }
 
@@ -293,8 +330,6 @@ public class SyncManager : MonoBehaviour
                 }
 
                 // create item to keep and manage
-                var title = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsTitle")?.ValueAsString();
-                var subtitle = jsonItem.Attributes.FirstOrDefault(a => a.AttributeCode == "attributes_itemsSubtitle")?.ValueAsString();
                 var inspection = new InspectionModel(parentAssetJson.Item.ItemId, jsonItem.ItemId, jsonItem.DesignCode, title, subtitle, jsonItem.Signature);
 
                 // add to store
