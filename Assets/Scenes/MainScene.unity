@@ -7171,6 +7171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerController: {fileID: 218800040}
+  PlayerCamera: {fileID: 357543792}
   MapSize: 10000
 --- !u!114 &390434821
 MonoBehaviour:
@@ -7185,7 +7186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Cameras:
-  - {fileID: 357543792}
+  - {fileID: 511009163}
   - {fileID: 511009163}
   Clips:
   - {fileID: 8300000, guid: edff0c4646d7e7340a5ddf76a9d72126, type: 3}

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
+using Assets.Server.Drawing;
 using Assets.Server.Game;
 using Assets.Server.Projection;
+using GeoAPI.Geometries;
 using GeoJSON.Net.Geometry;
 using UnityEngine;
 
@@ -12,10 +15,12 @@ namespace Assets.Server.Mapper
     public class LineStringToGameObjectMapper : AssetToGameObjectMapperBase
     {
         private Material _roadMaterial;
+        private Camera _camera;
 
-        public LineStringToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, Material roadMaterial) : base(stage, stageCoordProjector)
+        public LineStringToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, Material roadMaterial, Camera camera) : base(stage, stageCoordProjector)
         {
             _roadMaterial = roadMaterial;
+            _camera = camera;
         }
 
         public override GameObject CreateGameObjectForAsset(AssetModel asset)
@@ -34,8 +39,9 @@ namespace Assets.Server.Mapper
                 return null;
             }
 
-            // get the vertices of the linestring in the game world
-            var vertices = new Vector3[coordinateCount];
+            // get the coordinates in the game world of the line string, we use 2d vector as all our lines are flat
+            // alloy api never gives us 3d coords
+            var lineCoordinates = new Coordinate[coordinateCount];
             for (int i = 0; i < coordinateCount; i++)
             {
                 // calculate the world coordinates (metres) for the point in the linestring
@@ -51,50 +57,81 @@ namespace Assets.Server.Mapper
                     return null;
                 }
 
-                vertices[i] = new Vector3(itemStageCoords[0], 0.01f /* off the floor */, itemStageCoords[1]);
+                lineCoordinates[i] = new Coordinate(itemStageCoords[0], itemStageCoords[1]);
             }
 
-            // make a new game object, we will draw programatically
-            var assetGameObject = new GameObject();
-            
+            // using net topology suite to buffer the linestring by game units (create a poly from the line)
+            var gameCoordLineString = new NetTopologySuite.Geometries.LineString(lineCoordinates);
+            var bufferedPolygon = gameCoordLineString.Buffer(5.0, GeoAPI.Operations.Buffer.BufferStyle.CapSquare);
+
+            // update coordinate count, we're using the polygon now
+            coordinateCount = bufferedPolygon.Coordinates.Length;
+
+            // get the vertices of the polygon in the game world
+            var vertices = bufferedPolygon.Coordinates.Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y)).ToArray();
+
+            // calculate the texture coordinates for the mesh (I don't really care, everything is flat)
+            var uvs = new Vector2[coordinateCount];
+            for (int i = 0; i < coordinateCount; i++)
+            {
+                uvs[i] = (i % 2) == 0 ? new Vector2(0.0f, 0.0f) : new Vector2(1.0f, 1.0f);
+            }
+
+            // calculate triangles for the mesh (caveat: stolen from some horrendous unity post)
+            var triangulator = new Triangulator(Array.ConvertAll<Vector3, Vector2>(vertices, v => new Vector2(v.x, v.z)));
+
             // get the per design colour or the default
             var colour = ApplicationGlobals.MeshColourMapping.ContainsKey(asset.DesignCode) ?
                 ApplicationGlobals.MeshColourMapping[asset.DesignCode] :
                 ApplicationGlobals.MeshColourDefault;
 
-            // add the renderer to the game object
-            var renderer = assetGameObject.AddComponent<LineRenderer>();
+            // Generate a color for each vertex
+            var colors = Enumerable.Range(0, coordinateCount)
+                .Select(i => colour)
+                .ToArray();
+
+            // create a mesh from the points
+            var mesh = new Mesh();
+            mesh.vertices = vertices;
+            mesh.uv = uvs;
+            mesh.triangles = triangulator.Triangulate();
+            mesh.colors = colors;
+
+            // make our mesh better for performance
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.Optimize();
+
+            // make a new game object, we will draw programatically
+            var assetGameObject = new GameObject("Asset");
+
+            // make the filter including the mesh we made
+            var filter = assetGameObject.AddComponent<MeshFilter>();
+            filter.mesh = mesh;
+
+            // the way we render the poly
+            var renderer = assetGameObject.AddComponent<MeshRenderer>();
             renderer.material = _roadMaterial;
             renderer.material.color = colour;
-            renderer.startWidth = 10.0f; 
-            renderer.endWidth = 10.0f;
-
-            // weird, we have to set the position count, then the positions...
-            renderer.positionCount = coordinateCount;
-            renderer.SetPositions(vertices);
-
-            // make it lay down flat (else lines point upwards towards the Z)
-            renderer.alignment = LineAlignment.TransformZ;
-            renderer.transform.Rotate(90.0f, 90.0f, 90.0f, Space.World);
-
-            // TODO add a collider to the game object
-            // the following code should work but having some troubles with the generated mesh?
-            // currently linestrings are not collidable, thus not selectable
-
-            // construct a mesh and get the generated mesh from the line renderer into it
-            //var mesh = new Mesh();
-            //renderer.BakeMesh(mesh, true);
 
             // then use the above mesh for the mesh collider so we can interact with it e.g. look at
-            //var collider = go.AddComponent<MeshCollider>();
-            //collider.sharedMesh = mesh;
+            var colliderGameObject = new GameObject("AssetCollider");
 
+            // use the above mesh for the mesh collider so we can interact with it e.g. look at
+            var collider = colliderGameObject.AddComponent<MeshCollider>();
+            collider.sharedMesh = mesh;
+            collider.convex = false;
+            collider.enabled = true;
+            collider.contactOffset = 1f;
+            collider.isTrigger = false;
+            
             // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
             // to this just like the item prefabs
             var go = new GameObject();
 
             // add the asset to the container
             assetGameObject.transform.parent = go.transform;
+            colliderGameObject.transform.parent = assetGameObject.transform;
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
