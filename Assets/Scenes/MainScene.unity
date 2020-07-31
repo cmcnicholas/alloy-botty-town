@@ -5709,6 +5709,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MenuCanvas: {fileID: 1103833128}
   Stage: {fileID: 390434818}
+  PlayerCamera: {fileID: 357543792}
 --- !u!114 &218800042
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -118,16 +118,10 @@ namespace Assets.Server.Mapper
             renderer.material = _roadMaterial;
             renderer.material.color = colour;
 
-            // then use the above mesh for the mesh collider so we can interact with it e.g. look at
-            var colliderGameObject = new GameObject("AssetCollider");
-
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
-            var collider = colliderGameObject.AddComponent<MeshCollider>();
+            var collider = assetGameObject.AddComponent<MeshCollider>();
             collider.sharedMesh = mesh;
-            collider.convex = false;
             collider.enabled = true;
-            collider.contactOffset = 1f;
-            collider.isTrigger = false;
             
             // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
             // to this just like the item prefabs
@@ -135,7 +129,6 @@ namespace Assets.Server.Mapper
 
             // add the asset to the container
             assetGameObject.transform.parent = go.transform;
-            colliderGameObject.transform.parent = assetGameObject.transform;
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
