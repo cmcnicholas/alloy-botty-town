@@ -6,14 +6,21 @@ public class PlayerAssetHighlighter : MonoBehaviour
 {
     public GameObject MenuCanvas;
     public GameObject Stage;
+    public GameObject PlayerCamera;
     private AssetMenuController _assetMenuController;
+    private Camera _playerCamera;
     private Outline _lastHitOutline;
     private float _lastClick;
 
     // Start is called before the first frame update
     void Start()
     {
+        
+    }
 
+    void Awake()
+    {
+        _playerCamera = PlayerCamera.GetComponent<Camera>();
     }
 
     // Update is called once per frame
@@ -61,7 +68,7 @@ public class PlayerAssetHighlighter : MonoBehaviour
             }
 
             // find any new hit
-            if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 5.0f))
+            if (Physics.Raycast(_playerCamera.transform.position, _playerCamera.transform.forward, out RaycastHit hit, 5f))
             {
                 if (hit.transform.TryGetComponent<Outline>(out Outline outlineScript))
                 {
