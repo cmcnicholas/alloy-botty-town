@@ -322,11 +322,11 @@ namespace Assets.Server
                     },
                     {
                         "Item/SimpleTown/Prefabs/Props/Prop_Tree_01",
-                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
+                        new PrefabMappingRecord(2.0f, new List<string> { "designs_trees" })
                     },
                     {
                         "Item/SimpleTown/Prefabs/Props/Prop_Tree_02",
-                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
+                        new PrefabMappingRecord(2.0f, new List<string> { "designs_trees" })
                     },
                     {
                         "Item/SimpleTown/Prefabs/Props/Prop_Umbrella_01",
