@@ -68,7 +68,7 @@ public class PlayerAssetHighlighter : MonoBehaviour
             }
 
             // find any new hit
-            if (Physics.Raycast(_playerCamera.transform.position, _playerCamera.transform.forward, out RaycastHit hit, 10.0f))
+            if (Physics.Raycast(_playerCamera.transform.position, _playerCamera.transform.forward, out RaycastHit hit, 5f))
             {
                 if (hit.transform.TryGetComponent<Outline>(out Outline outlineScript))
                 {
