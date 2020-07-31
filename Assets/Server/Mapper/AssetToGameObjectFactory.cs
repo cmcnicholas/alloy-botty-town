@@ -15,21 +15,14 @@ namespace Assets.Server.Mapper
         {
             // load the road material
             var roadMaterial = Resources.Load("Materials/Road") as Material;
-            var itemPrefabs = Resources.Load("Prefabs/ItemPrefab") as GameObject;
 
-            // enumerate the prefab game objects, we use an empty game object prefab to house several game objects
-            // the name is the key we use to look them up and assign them to items e.g. street lights
-            var prefabs = new Dictionary<string, GameObject>();
-            foreach (Transform child in itemPrefabs.transform)
-            {
-                prefabs.Add(child.name, child.gameObject);
-            }
+            var prefabManager = new PrefabManager();
 
             // create the mappers
             var mappers = new Dictionary<GeoJSONObjectType, AssetToGameObjectMapperBase>();
-            mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabs);
+            mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabManager);
             mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial, playerCamera);
-            mappers[GeoJSONObjectType.Polygon] = new PolygonToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
+            mappers[GeoJSONObjectType.Polygon] = new PolygonToGameObjectMapper(stage, stageCoordProjector, prefabManager, roadMaterial);
 
             return new AssetToGameObjectFactory(mappers);
         }

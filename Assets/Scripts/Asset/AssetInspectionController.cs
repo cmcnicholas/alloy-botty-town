@@ -6,6 +6,7 @@ public class AssetInspectionController : MonoBehaviour
     public bool Visible;
     public GameObject Asset;
     public bool IsLineString;
+    public Vector3[] LineStringCoordinates;
     public bool IsPolygon;
     private bool? _lastVisible = null;
     private IList<GameObject> _gameObjects = new List<GameObject>();
@@ -82,12 +83,13 @@ public class AssetInspectionController : MonoBehaviour
 
     private void InitialiseLineString()
     {
-        // get all the positions in the rendered line
-        var renderer = Asset.GetComponent<LineRenderer>();
-        var positions = new Vector3[renderer.positionCount];
-        renderer.GetPositions(positions);
+        if (LineStringCoordinates == null)
+        {
+            Debug.Log("cannot initialise asset inspection controller, missing line string coordinates");
+            return;
+        }
         
-        foreach (var position in positions)
+        foreach (var position in LineStringCoordinates)
         {
             var barrier = Instantiate(GetRandomPrefab(), gameObject.transform);
             barrier.transform.localPosition = new Vector3(position.x, position.y, position.z);

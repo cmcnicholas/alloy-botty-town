@@ -134,6 +134,7 @@ namespace Assets.Server.Mapper
             var assetController = go.AddComponent<AssetController>();
             assetController.Asset = assetGameObject;
             assetController.IsLineString = true;
+            assetController.LineStringCoordinates = vertices;
             assetController.ItemId = asset.ItemId;
 
             // finally add the new object to the stage

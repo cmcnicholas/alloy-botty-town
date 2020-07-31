@@ -7,6 +7,7 @@ public class AssetDefectController : MonoBehaviour
     public bool Clear;
     public GameObject Asset;
     public bool IsLineString;
+    public Vector3[] LineStringCoordinates;
     public bool IsPolygon;
     private bool? _lastVisible = null;
     private bool? _lastClear = null;
@@ -78,12 +79,14 @@ public class AssetDefectController : MonoBehaviour
 
     private void InitialiseLineString()
     {
-        // get all the positions in the rendered line
-        var renderer = Asset.GetComponent<LineRenderer>();
-        var positions = new Vector3[renderer.positionCount];
-        renderer.GetPositions(positions);
-        
-        foreach (var position in positions)
+        if (LineStringCoordinates == null)
+        {
+            Debug.Log("cannot initialise asset defect controller, missing line string coordinates");
+            return;
+        }
+
+        // get all the positions in the rendered line        
+        foreach (var position in LineStringCoordinates)
         {
             var fx = Instantiate(GetRandomPrefab(), gameObject.transform);
             var particleSystem = fx.GetComponent<ParticleSystem>();

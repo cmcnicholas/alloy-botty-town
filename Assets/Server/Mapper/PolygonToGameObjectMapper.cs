@@ -1,6 +1,7 @@
 ﻿using Assets.Server.Drawing;
 using Assets.Server.Game;
 using Assets.Server.Projection;
+using GeoAPI.Geometries;
 using GeoJSON.Net.Geometry;
 using System;
 using System.Linq;
@@ -13,10 +14,13 @@ namespace Assets.Server.Mapper
     /// </summary>
     public class PolygonToGameObjectMapper : AssetToGameObjectMapperBase
     {
+        private PrefabManager _prefabManager;
         private Material _groundMaterial;
 
-        public PolygonToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, Material groundMaterial) : base(stage, stageCoordProjector)
+        public PolygonToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, PrefabManager prefabManager, 
+            Material groundMaterial) : base(stage, stageCoordProjector)
         {
+            _prefabManager = prefabManager;
             _groundMaterial = groundMaterial;
         }
 
@@ -127,10 +131,30 @@ namespace Assets.Server.Mapper
 
             // add the asset to the container
             assetGameObject.transform.parent = go.transform;
+            
+            // now we start making the model to put on top of our poly
+
+            // generate a polygon in world coordinates
+            var polygonCoords = new Coordinate[coordinateCount + 1];
+            for (var i = 0; i < coordinateCount; i++)
+            {
+                var vertex = vertices[i];
+                polygonCoords[i] = new Coordinate(vertex.x, vertex.z);
+            }
+            polygonCoords[coordinateCount] = new Coordinate(vertices[0].x, vertices[0].z); // close the polygon
+
+            // calculate the centroid
+            var polygon = new NetTopologySuite.Geometries.Polygon(new NetTopologySuite.Geometries.LinearRing(polygonCoords));
+
+            // move the asset to the correct position and add to the parent
+            GameObject assetModelGameObject = _prefabManager.CreateForAsset(asset);
+            assetModelGameObject.transform.position = new Vector3((float)polygon.Centroid.X, 0.01f, (float)polygon.Centroid.Y);
+            assetModelGameObject.transform.parent = go.transform;
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
             assetController.Asset = assetGameObject;
+            assetController.IsLineString = false;
             assetController.IsPolygon = true;
             assetController.ItemId = asset.ItemId;
 

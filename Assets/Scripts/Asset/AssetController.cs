@@ -12,6 +12,7 @@ public class AssetController : MonoBehaviour
 {
     public GameObject Asset;
     public bool IsLineString;
+    public Vector3[] LineStringCoordinates;
     public bool IsPolygon;
     public string ItemId;
     private AssetJobController _jobController;
@@ -33,6 +34,7 @@ public class AssetController : MonoBehaviour
         _inspectionController.Asset = Asset;
         _inspectionController.IsPolygon = IsPolygon;
         _inspectionController.IsLineString = IsLineString;
+        _inspectionController.LineStringCoordinates = LineStringCoordinates;
         _inspectionController.Visible = false; // non-visible assets to start
         _inspectionController.enabled = false; // also don't bother running
 
@@ -41,6 +43,7 @@ public class AssetController : MonoBehaviour
         _defectController.Asset = Asset;
         _defectController.IsPolygon = IsPolygon;
         _defectController.IsLineString = IsLineString;
+        _defectController.LineStringCoordinates = LineStringCoordinates;
         _defectController.Visible = false; // non-visible assets to start
         _defectController.Clear = false;
         _defectController.enabled = false; // also don't bother running
@@ -50,6 +53,7 @@ public class AssetController : MonoBehaviour
         _jobController.Asset = Asset;
         _jobController.IsPolygon = IsPolygon;
         _jobController.IsLineString = IsLineString;
+        _jobController.LineStringCoordinates = LineStringCoordinates;
         _jobController.Visible = false; // non-visible assets to start
         _jobController.enabled = false; // also don't bother running
     }

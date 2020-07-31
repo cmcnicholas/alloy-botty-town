@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Assets.Server.Game;
 using Assets.Server.Projection;
 using GeoJSON.Net.Geometry;
@@ -12,25 +11,15 @@ namespace Assets.Server.Mapper
     /// </summary>
     public class PointToGameObjectMapper : AssetToGameObjectMapperBase
     {
-        private IDictionary<string, GameObject> _prefabs;
+        private PrefabManager _prefabManager;
 
-        public PointToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, IDictionary<string, GameObject> prefabs): base(stage, stageCoordProjector)
+        public PointToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, PrefabManager prefabManager): base(stage, stageCoordProjector)
         {
-            _prefabs = prefabs;
+            _prefabManager = prefabManager;
         }
 
         public override GameObject CreateGameObjectForAsset(AssetModel asset)
         {
-            // find the prefab model we have for this item
-            string prefabName = PrefabNameForItem(asset);
-            if (!_prefabs.ContainsKey(prefabName))
-            {
-                return null;
-            }
-
-            // get the game object we use as a template
-            GameObject template = _prefabs[prefabName];
-            
             // get the geometry and expect it to be a point
             var itemPoint = asset.Geometry as Point;
             if (itemPoint == null)
@@ -50,11 +39,26 @@ namespace Assets.Server.Mapper
                 return null;
             }
 
-            // make the instance
-            var go = UnityEngine.Object.Instantiate(template, new Vector3(itemStageCoords[0], 0, itemStageCoords[1]), new Quaternion(), Stage.transform);
+            // make the instance and move it to a position
+            var go = new GameObject();
+            
+            // make a game object of the model and add the asset to the parent
+            GameObject assetGameObject = _prefabManager.CreateForAsset(asset);
+            assetGameObject.transform.parent = go.transform;
+            assetGameObject.transform.localPosition = new Vector3(0, 0, 0);
 
-            // set the item id of the asset
-            go.GetComponent<AssetController>().ItemId = asset.ItemId;
+            // setup the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Asset = assetGameObject;
+            assetController.IsLineString = false;
+            assetController.IsPolygon = false;
+            assetController.ItemId = asset.ItemId;
+
+            // move the outer game objec to the right spot
+            go.transform.position = new Vector3(itemStageCoords[0], 0, itemStageCoords[1]);
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
 
             return go;
         }

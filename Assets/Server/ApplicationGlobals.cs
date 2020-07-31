@@ -50,7 +50,7 @@ namespace Assets.Server
         public static string ScoreSaveScoreAttributeCode;
 
         public static string PrefabDefault;
-        public static IDictionary<string, IList<string>> PrefabMapping;
+        public static IDictionary<string, PrefabMappingRecord> PrefabMapping;
         public static IDictionary<string, List<string>> PrefabReverseMapping; // maps dodi's to prefabs
 
         public static Color MeshColourDefault;
@@ -111,9 +111,9 @@ namespace Assets.Server
 
             // process reverse mapping for prefabs design -> prefab names
             PrefabReverseMapping = PrefabMapping.
-                SelectMany(p => p.Value).
+                SelectMany(p => p.Value.DesignCodes).
                 Distinct().
-                ToDictionary(d => d, d => PrefabMapping.Where(p => p.Value.Contains(d)).Select(p => p.Key).ToList());
+                ToDictionary(d => d, d => PrefabMapping.Where(p => p.Value.DesignCodes.Contains(d)).Select(p => p.Key).ToList());
 
             MeshColourDefault = configJson?.MeshColourDefault != null ? FloatArrayToColour(configJson?.MeshColourDefault) : FloatArrayToColour(Config.Default.MeshColourDefault);
             MeshColourMapping = configJson?.MeshColourMapping != null ? 
@@ -182,100 +182,790 @@ namespace Assets.Server
                 ScoreSaveNameAttributeCode = "<attribute code of the custom attribute to save name to>",
                 ScoreSaveScoreAttributeCode = "<attribute code of the custom attribute to save score to>",
 
-                PrefabDefault = "DefaultPrefab",
-                PrefabMapping = new Dictionary<string, IList<string>>
+                PrefabDefault = "Item/SimpleTown/Prefabs/Props/grave_small_mesh",
+                PrefabMapping = new Dictionary<string, PrefabMappingRecord>
                 {
-                    // list all available prefabs, expect users to add to any lists any custom designs
+                    // add some available prefabs, expect users to add to any lists any custom designs
                     // they want a prefab to be represented by. we can handle MULTIPLE prefabs for a 
                     // single design code, we do this by randomising the prefab selected if the design
                     // exists as a child of more than 1 prefab
 
-                    // start: trees
                     {
-                        "Tree01Prefab",
-                        new List<string>
-                        {
-                            "designs_trees"
-                        }
+                        "Item/SimpleTown/Prefabs/Props/Aerial_mesh",
+                        new PrefabMappingRecord()
                     },
                     {
-                        "Tree02Prefab",
-                        new List<string>
-                        {
-                            "designs_trees"
-                        }
+                        "Item/SimpleTown/Prefabs/Props/billboard_mesh",
+                        new PrefabMappingRecord()
                     },
                     {
-                        "Tree03Prefab",
-                        new List<string>
-                        {
-                            "designs_trees"
-                        }
+                        "Item/SimpleTown/Prefabs/Props/bin_mesh",
+                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
                     },
                     {
-                        "Tree04Prefab",
-                        new List<string>
-                        {
-                            "designs_trees"
-                        }
+                        "Item/SimpleTown/Prefabs/Props/bush_large_mesh",
+                        new PrefabMappingRecord()
                     },
                     {
-                        "Tree06Prefab",
-                        new List<string>
-                        {
-                            "designs_trees"
-                        }
-                    },
-
-                    // start: waste
-                    {
-                        "Trash01Prefab",
-                        new List<string>
-                        {
-                            "designs_wasteContainers",
-                            "designs_feederPillars"
-                        }
+                        "Item/SimpleTown/Prefabs/Props/bush_small_mesh",
+                        new PrefabMappingRecord()
                     },
                     {
-                        "Trash02Prefab",
-                        new List<string>()
+                        "Item/SimpleTown/Prefabs/Props/dish_mesh",
+                        new PrefabMappingRecord()
                     },
-
-                    // start: lighting
                     {
-                        "Lamp01Prefab",
-                        new List<string>
+                        "Item/SimpleTown/Prefabs/Props/dumpster_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Env_Planter",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/fence_long_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/fence_short_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/fence_short_spike",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/flag_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/flower_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/grass_square_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/grave_large_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/grave_medium_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/grave_small_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/hedge_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/hydrant_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/lamp_mesh",
+                        new PrefabMappingRecord(new List<string>
                         {
                             "designs_streetLights",
                             "designs_otherStreetLights",
                             "designs_signIlluminations",
                             "designs_subwayLights"
-                        }
+                        })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/memorial_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/path_cross_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/path_straight_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/pipe_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Beachseat_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Beachseat_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Beachseat_03",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Roadsign_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Roadsign_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Roadsign_03",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_TirePile",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Tree_01",
+                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Tree_02",
+                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Umbrella_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Umbrella_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Prop_Umbrella_03",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Props_Buoy_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/Props_Buoy_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/traffic_light_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/trash_mesh",
+                        new PrefabMappingRecord(new List<string> { "designs_wasteContainers" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/tree_large_mesh",
+                        new PrefabMappingRecord(2.0f, new List<string> { "designs_trees" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/tree_medium_mesh",
+                        new PrefabMappingRecord(2.0f, new List<string> { "designs_trees" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Props/tree_small_mesh",
+                        new PrefabMappingRecord(2.0f, new List<string> { "designs_trees" })
                     },
 
-                    // start: signs
+
+
                     {
-                        "Sign01Prefab",
-                        new List<string>
-                        {
-                            "designs_bollards"
-                        }
+                        "Item/SimpleTown/Prefabs/Environment/Env_Beach_Corner",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Beach_Short",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Beach_Straight",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_Corner_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_Corner_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_End",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_Pipe_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_Pipe_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Canal_Straight",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Car_Bridge",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Car_Bridge_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Foot_Bridge",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Planter",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Road_Corner",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Road_Ramp",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Road_Ramp_Pillar",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Road_Ramp_Straight",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Rocks_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Rocks_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Rocks_03",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Seawall_Corner_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Seawall_Corner_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Seawall_Straight",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Seawall_Wall",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/Env_Water_Tile",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/fence_short_spike",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/path_driveway",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_bend_left_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_bend_right_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_corner_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_cornerLines_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_crossing_center_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_crossing_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_divider_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_LaneTransition_Left",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_LaneTransition_Right",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_Roundabout",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_square_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_straight_clear_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_straight_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/road_t_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Environment/roadLane_straight_Centered_mesh",
+                        new PrefabMappingRecord()
                     },
 
-                    // start: structures
+
                     {
-                        "House01Prefab",
-                        new List<string>
-                        {
-                            "designs_nlpgPremises"
-                        }
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentLarge_Brown",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentLarge_Orange",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentLarge_Red",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentSmall_Brown",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentSmall_Orange",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_ApartmentSmall_Red",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_AutoRepair",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_BaberShop",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Cinema",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_CoffeeShop",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Garage_01",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Garage_02",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Garage_03",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Gym",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_01",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_02",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_03",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_04",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_05",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_06",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_07",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_08",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_09",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_010",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_011",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_012",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_013",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_014",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_015",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_Green",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_Orange",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_House_Red",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Mall",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeLarge_Blue",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeLarge_Brown",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeLarge_Grey",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeMedium_Blue",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeSmall_Blue",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeSmall_Brown",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeSmall_Grey",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeStepped_Blue",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeStepped_Brown",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_OfficeStepped_Grey",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Shop_01",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Shop_02",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Shop_03",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Shop_04",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Shop_05",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Store_Drug",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Store_Pawn",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_Store_Video",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_StoreCorner_Drug",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_StoreCorner_Pawn",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_StoreCorner_Video",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Buildings/Building_StripClub",
+                        new PrefabMappingRecord(new List<string> { "designs_nlpgPremises" })
                     },
 
-                    // start: traffic management
+
                     {
-                        "TrafficLight01Prefab",
-                        new List<string>()
+                        "Item/SimpleTown/Prefabs/Vehicles/ambo_mesh",
+                        new PrefabMappingRecord()
                     },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/bus_blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/bus_brown",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/bus_grey",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/car_blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/car_green",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/car_red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/cop_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/fire_truck_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/rubbishTruck_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/taxi_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_empty_blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_empty_red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_empty_yellow",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_mesh_blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_mesh_red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/ute_mesh_yellow",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/van_mesh_blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/van_mesh_green",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/van_mesh_red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/Vehicle_Boat_01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/Vehicle_Boat_02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleTown/Prefabs/Vehicles/Vehicle_Boat_03",
+                        new PrefabMappingRecord()
+                    },
+
+
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Barrier01",
+                        new PrefabMappingRecord(new List<string> { "designs_bollards" })
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Barrier02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Detour_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_DoNotEnter_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_GiveWay_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Manholecover",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_PowerPole",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_RoadClosed_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Roadcone01",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Roadcone02",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Roadwork_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_RoadWorkAhead_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Speed10_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Speed20_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Speed30_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Speed50_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Stop_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_StormWaterDrain",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Prop_Warning_Sign",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Road_Roadwork_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Road_straight_mesh",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_DumpTruck_Blue",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_DumpTruck_Red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_DumpTruck_Yellow",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_MixerTruck_Cyan",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_MixerTruck_Red",
+                        new PrefabMappingRecord()
+                    },
+                    {
+                        "Item/SimpleRoadwork/Prefabs/Vehicle_MixerTruck_Yellow",
+                        new PrefabMappingRecord()
+                    },
+
                 },
 
                 // defaults for polygons
@@ -321,10 +1011,34 @@ namespace Assets.Server
             public string ScoreSaveScoreAttributeCode;
 
             public string PrefabDefault;
-            public IDictionary<string, IList<string>> PrefabMapping;
+            public IDictionary<string, PrefabMappingRecord> PrefabMapping;
 
             public float[] MeshColourDefault;
             public IDictionary<string, float[]> MeshColourMapping;
+        }
+
+        public class PrefabMappingRecord
+        {
+            public float Scale;
+            public IList<string> DesignCodes;
+
+            public PrefabMappingRecord() : this(1.0f, new List<string>())
+            {
+            }
+
+            public PrefabMappingRecord(float scale) : this(scale, new List<string>())
+            {
+            }
+
+            public PrefabMappingRecord(IList<string> designCodes) : this(1.0f, designCodes)
+            {
+            }
+
+            public PrefabMappingRecord(float scale, IList<string> designCodes)
+            {
+                Scale = scale;
+                DesignCodes = designCodes;
+            }
         }
     }
 }
