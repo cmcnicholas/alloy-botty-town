@@ -4,10 +4,7 @@ using UnityEngine;
 public class AssetInspectionController : MonoBehaviour
 {
     public bool Visible;
-    public GameObject Asset;
-    public bool IsLineString;
-    public Vector3[] LineStringCoordinates;
-    public bool IsPolygon;
+    public AssetController AssetController;
     private bool? _lastVisible = null;
     private IList<GameObject> _gameObjects = new List<GameObject>();
     private string[] _inspectionPrefabs = new string[]
@@ -22,11 +19,11 @@ public class AssetInspectionController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (IsPolygon)
+        if (AssetController.IsPolygon)
         {
             InitialisePolygon();
         }
-        else if (IsLineString)
+        else if (AssetController.IsLineString)
         {
             InitialiseLineString();
         }
@@ -52,55 +49,90 @@ public class AssetInspectionController : MonoBehaviour
 
     private void InitialisePoint()
     {
-        // get the renderer and a prefab to create an instance of
-        var mr = Asset.GetComponent<MeshRenderer>();
-        var templatePrefab = GetRandomPrefab();
+        foreach (var asset in AssetController.Assets)
+        {
+            // get the renderer and a prefab to create an instance of
+            var mr = asset.GetComponent<MeshRenderer>();
+            var templatePrefab = GetRandomPrefab();
 
-        // expand the bounds of the asset
-        var expandedBounds = new Bounds(mr.bounds.center, mr.bounds.size);
-        expandedBounds.Expand(3f);
+            // expand the bounds of the asset
+            var expandedBounds = new Bounds(mr.bounds.center, mr.bounds.size);
+            expandedBounds.Expand(3f);
 
-        // get the expanded min/max
-        var expandedMin = expandedBounds.min - expandedBounds.center;
-        var expandedMax = expandedBounds.max - expandedBounds.center;
+            // get the expanded min/max
+            /*var expandedMin = expandedBounds.min - expandedBounds.center;
+            var expandedMax = expandedBounds.max - expandedBounds.center;*/
 
-        // add 4 around the asset
-        _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, new Vector3(expandedMin.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedMin.z), -135f));
-        _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, new Vector3(expandedMin.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedMax.z), -45f));
-        _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, new Vector3(expandedMax.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedMax.z), 45f));
-        _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, new Vector3(expandedMax.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedMin.z), 135f));
-    }
-
-    private GameObject CreateBarrierFromTemplate(GameObject templatePrefab, Vector3 position, float roughRotate)
-    {
-        var barrier = Instantiate(templatePrefab, gameObject.transform);
-        barrier.transform.localPosition = position;
-
-        // rotate with some jitter to make it look more organic
-        barrier.transform.Rotate(0f, Random.Range(roughRotate - 10f, roughRotate + 10f), 0f);
-        return barrier;
+            // add 4 around the asset
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab,
+                new Vector3(expandedBounds.min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.min.z), -135f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab,
+                new Vector3(expandedBounds.min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.max.z), -45f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab,
+                new Vector3(expandedBounds.max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.max.z), 45f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab,
+                new Vector3(expandedBounds.max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.min.z), 135f));
+        }
     }
 
     private void InitialiseLineString()
     {
-        if (LineStringCoordinates == null)
+        if (AssetController.LineStringCoordinates == null)
         {
             Debug.Log("cannot initialise asset inspection controller, missing line string coordinates");
             return;
         }
-        
-        foreach (var position in LineStringCoordinates)
+
+        foreach (var line in AssetController.LineStringCoordinates)
         {
-            var barrier = Instantiate(GetRandomPrefab(), gameObject.transform);
-            barrier.transform.localPosition = new Vector3(position.x, position.y, position.z);
-            barrier.transform.Rotate(0f, Random.Range(0f, 360f), 0f); // rotate anywhere
-            _gameObjects.Add(barrier);
+            foreach (var position in line)
+            {
+                var barrier = Instantiate(GetRandomPrefab(), gameObject.transform);
+                barrier.transform.localPosition = new Vector3(position.x, position.y, position.z);
+                barrier.transform.Rotate(0f, Random.Range(0f, 360f), 0f); // rotate anywhere
+                _gameObjects.Add(barrier);
+            }
         }
     }
 
     private void InitialisePolygon()
     {
-        // TODO
+        if (AssetController.PolygonsToTaskDefectAgainst == null)
+        {
+            Debug.Log("cannot initialise asset inspection controller, missing polygons to task/defect against");
+            return;
+        }
+
+        foreach (var asset in AssetController.PolygonsToTaskDefectAgainst)
+        {
+            // get the renderer and a prefab to create an instance of
+            var mr = asset.GetComponent<MeshRenderer>();
+            var templatePrefab = GetRandomPrefab();
+
+            // expand the bounds of the asset
+            var expandedBounds = new Bounds(mr.bounds.center, mr.bounds.size);
+            expandedBounds.Expand(3f);
+            
+            // add 4 around the asset
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, 
+                new Vector3(expandedBounds.min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.min.z), -135f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, 
+                new Vector3(expandedBounds.min.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.max.z), -45f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, 
+                new Vector3(expandedBounds.max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.max.z), 45f));
+            _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab, 
+                new Vector3(expandedBounds.max.x, Mathf.Min(mr.bounds.max.y, mr.bounds.min.y), expandedBounds.min.z), 135f));
+        }
+    }
+
+    private GameObject CreateBarrierFromTemplate(GameObject templatePrefab, Vector3 position, float roughRotate)
+    {
+        var barrier = Instantiate(templatePrefab, gameObject.transform);
+        barrier.transform.position = position;
+
+        // rotate with some jitter to make it look more organic
+        barrier.transform.RotateAround(position, new Vector3(0f, 1f, 0f), Random.Range(roughRotate - 10f, roughRotate + 10f));
+        return barrier;
     }
 
     private GameObject GetRandomPrefab()

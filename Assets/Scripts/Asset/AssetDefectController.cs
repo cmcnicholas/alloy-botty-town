@@ -5,10 +5,7 @@ public class AssetDefectController : MonoBehaviour
 {
     public bool Visible;
     public bool Clear;
-    public GameObject Asset;
-    public bool IsLineString;
-    public Vector3[] LineStringCoordinates;
-    public bool IsPolygon;
+    public AssetController AssetController;
     private bool? _lastVisible = null;
     private bool? _lastClear = null;
     private IList<ParticleSystem> _particleSystems = new List<ParticleSystem>();
@@ -21,11 +18,11 @@ public class AssetDefectController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (IsPolygon)
+        if (AssetController.IsPolygon)
         {
             InitialisePolygon();
         }
-        else if (IsLineString)
+        else if (AssetController.IsLineString)
         {
             InitialiseLineString();
         }
@@ -62,44 +59,65 @@ public class AssetDefectController : MonoBehaviour
 
     private void InitialisePoint()
     {
-        // make an fx object on the game object template
-        var go = Instantiate(GetRandomPrefab(), gameObject.transform);
-        var particleSystem = go.GetComponent<ParticleSystem>();
+        foreach (var asset in AssetController.Assets)
+        {
+            // make an fx object on the game object template
+            var go = Instantiate(GetRandomPrefab(), gameObject.transform);
+            var particleSystem = go.GetComponent<ParticleSystem>();
 
-        _particleSystems.Add(particleSystem);
+            _particleSystems.Add(particleSystem);
 
-        // make the fx bigger
-        var mr = Asset.GetComponent<MeshRenderer>();
-        var particleSystemShape = particleSystem.shape;
-        particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
+            // make the fx bigger
+            var mr = asset.GetComponent<MeshRenderer>();
+            var particleSystemShape = particleSystem.shape;
+            particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
 
-        // put the fx on top of the thing
-        go.transform.localPosition = new Vector3(0.0f, mr.bounds.size.y, 0.0f);
+            // put the fx on top of the thing
+            go.transform.position = new Vector3(mr.bounds.center.x, mr.bounds.size.y, mr.bounds.center.z);
+        }
     }
 
     private void InitialiseLineString()
     {
-        if (LineStringCoordinates == null)
+        if (AssetController.LineStringCoordinates == null)
         {
             Debug.Log("cannot initialise asset defect controller, missing line string coordinates");
             return;
         }
 
-        // get all the positions in the rendered line        
-        foreach (var position in LineStringCoordinates)
+        // get all the positions in the rendered line  
+        foreach (var line in AssetController.LineStringCoordinates)
         {
-            var fx = Instantiate(GetRandomPrefab(), gameObject.transform);
-            var particleSystem = fx.GetComponent<ParticleSystem>();
+            foreach (var position in line)
+            {
+                var fx = Instantiate(GetRandomPrefab(), gameObject.transform);
+                var particleSystem = fx.GetComponent<ParticleSystem>();
 
-            fx.transform.localPosition = position;
-            
-            _particleSystems.Add(particleSystem);
+                fx.transform.localPosition = position;
+
+                _particleSystems.Add(particleSystem);
+            }
         }
     }
 
     private void InitialisePolygon()
     {
-        // TODO
+        foreach (var asset in AssetController.Assets)
+        {
+            // make an fx object on the game object template
+            var go = Instantiate(GetRandomPrefab(), gameObject.transform);
+            var particleSystem = go.GetComponent<ParticleSystem>();
+
+            _particleSystems.Add(particleSystem);
+
+            // make the fx bigger
+            var mr = asset.GetComponent<MeshRenderer>();
+            var particleSystemShape = particleSystem.shape;
+            particleSystemShape.scale = new Vector3(mr.bounds.size.x, mr.bounds.size.y, mr.bounds.size.z);
+
+            // put the fx on top of the thing
+            go.transform.position = new Vector3(mr.bounds.center.x, mr.bounds.size.y, mr.bounds.center.z);
+        }
     }
 
     private GameObject GetRandomPrefab()

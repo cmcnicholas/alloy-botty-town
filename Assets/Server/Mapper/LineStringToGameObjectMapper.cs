@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Server.Drawing;
 using Assets.Server.Game;
@@ -132,9 +133,13 @@ namespace Assets.Server.Mapper
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
-            assetController.Asset = assetGameObject;
+            assetController.Assets = new List<GameObject> { assetGameObject };
             assetController.IsLineString = true;
-            assetController.LineStringCoordinates = vertices;
+            assetController.LineStringCoordinates = new List<List<Vector3>>
+            {
+                // only one line string here
+                lineCoordinates.Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y)).ToList(),
+            };
             assetController.ItemId = asset.ItemId;
 
             // finally add the new object to the stage

@@ -57,7 +57,7 @@ public class LevelController : MonoBehaviour
         _timeLeft -= Time.deltaTime;
         _timerCounterController.Number = (int)Math.Ceiling(_timeLeft);
 
-        if (_timeLeft <= 0f)
+        if (!IsFreePlay && _timeLeft <= 0f)
         {
             // remove HUD first then open game over
             _assetMenuController.CloseMenu();
@@ -65,7 +65,7 @@ public class LevelController : MonoBehaviour
             return;
         }
 
-        bool isWarning = _timeLeft <= WarnSecondsRemaining;
+        bool isWarning = !IsFreePlay && _timeLeft <= WarnSecondsRemaining;
         _timerCounterController.ColourTilingOffsetY = isWarning ? WarnSecondsRemainingColourOffsetY : _startColourTilingOffsetY;
 
         if (isWarning)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Assets.Server.Game;
 using Assets.Server.Projection;
 using GeoJSON.Net.Geometry;
@@ -49,7 +50,7 @@ namespace Assets.Server.Mapper
 
             // setup the asset controller
             var assetController = go.AddComponent<AssetController>();
-            assetController.Asset = assetGameObject;
+            assetController.Assets = new List<GameObject> { assetGameObject };
             assetController.IsLineString = false;
             assetController.IsPolygon = false;
             assetController.ItemId = asset.ItemId;
@@ -61,34 +62,6 @@ namespace Assets.Server.Mapper
             go.transform.parent = Stage.transform;
 
             return go;
-        }
-
-        private string PrefabNameForItem(AssetModel item)
-        {
-            // no design? use default
-            if (!ApplicationGlobals.PrefabReverseMapping.ContainsKey(item.DesignCode))
-            {
-                return ApplicationGlobals.PrefabDefault;
-            }
-
-            // find any suitable prefabs
-            var suitablePrefabs = ApplicationGlobals.PrefabReverseMapping[item.DesignCode];
-            int prefabsCount = suitablePrefabs.Count;
-
-            // no suitable? use default
-            if (prefabsCount == 0)
-            {
-                return ApplicationGlobals.PrefabDefault;
-            }
-
-            // only 1? use it
-            if (prefabsCount == 1)
-            {
-                return suitablePrefabs[0];
-            }
-
-            // otherwise use a random prefab
-            return suitablePrefabs[UnityEngine.Random.Range(0, prefabsCount - 1)];
         }
     }
 }

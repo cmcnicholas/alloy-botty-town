@@ -1,5 +1,4 @@
-﻿using cakeslice;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class PlayerAssetHighlighter : MonoBehaviour
@@ -9,7 +8,7 @@ public class PlayerAssetHighlighter : MonoBehaviour
     public GameObject PlayerCamera;
     private AssetMenuController _assetMenuController;
     private Camera _playerCamera;
-    private Outline _lastHitOutline;
+    private AssetController _lastHitAssetController;
     private float _lastClick;
 
     // Start is called before the first frame update
@@ -26,14 +25,11 @@ public class PlayerAssetHighlighter : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (_lastHitOutline != null && Input.GetMouseButtonDown(0) && _lastClick + 0.5f < Time.time)
+        if (_lastHitAssetController != null && Input.GetMouseButtonDown(0) && _lastClick + 0.5f < Time.time)
         {
             // debounce
             _lastClick = Time.time;
-
-            // weirdly hit appears on the child component but the outline is on the parent, whatever...
-            var assetController = _lastHitOutline.transform.parent.GetComponent<AssetController>();
-            _assetMenuController.OpenMenu(assetController.ItemId);
+            _assetMenuController.OpenMenu(_lastHitAssetController.ItemId);
         }
     }
 
@@ -46,9 +42,9 @@ public class PlayerAssetHighlighter : MonoBehaviour
         // weird bug where the outline script selects everything on screen during transition from 
         // main menu camera to player camera, this goes and nukes the enabled state on all outlines
         // so they don't get a chance to render :)
-        foreach (var outline in Stage.GetComponentsInChildren<Outline>())
+        foreach (var assetController in Stage.GetComponentsInChildren<AssetController>())
         {
-            outline.enabled = false;
+            assetController.SetOutline(false);
         }
 
         // start checking for hits, we HAVE to restart this each time enabled changes
@@ -61,19 +57,19 @@ public class PlayerAssetHighlighter : MonoBehaviour
         while (true)
         {
             // remove hit
-            if (_lastHitOutline != null)
+            if (_lastHitAssetController != null)
             {
-                _lastHitOutline.enabled = false;
-                _lastHitOutline = null;
+                _lastHitAssetController.SetOutline(false);
+                _lastHitAssetController = null;
             }
 
             // find any new hit
             if (Physics.Raycast(_playerCamera.transform.position, _playerCamera.transform.forward, out RaycastHit hit, 5f))
             {
-                if (hit.transform.TryGetComponent<Outline>(out Outline outlineScript))
+                if (hit.transform.parent != null && hit.transform.parent.TryGetComponent<AssetController>(out AssetController assetController))
                 {
-                    _lastHitOutline = outlineScript;
-                    _lastHitOutline.enabled = true;
+                    _lastHitAssetController = assetController;
+                    _lastHitAssetController.SetOutline(true);
                 }
             }
 

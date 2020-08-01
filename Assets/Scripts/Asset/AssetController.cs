@@ -1,4 +1,6 @@
 ﻿using cakeslice;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -10,14 +12,16 @@ using UnityEngine;
 /// </summary>
 public class AssetController : MonoBehaviour
 {
-    public GameObject Asset;
+    public List<GameObject> Assets;
     public bool IsLineString;
-    public Vector3[] LineStringCoordinates;
+    public IList<List<Vector3>> LineStringCoordinates;
     public bool IsPolygon;
+    public List<GameObject> PolygonsToTaskDefectAgainst;
     public string ItemId;
     private AssetJobController _jobController;
     private AssetInspectionController _inspectionController;
     private AssetDefectController _defectController;
+    private IList<Outline> _outlines;
     private bool _job = false;
     private bool _inspect = false;
     private bool _defect = false;
@@ -27,33 +31,29 @@ public class AssetController : MonoBehaviour
     void Start()
     {
         // add the outline component
-        Asset.AddComponent<Outline>().enabled = false;
+        _outlines = Assets.Select(asset =>
+        {
+            var outline = asset.AddComponent<Outline>();
+            outline.enabled = false;
+            return outline;
+        }).ToList();
 
         // inspection controller, invisible by default
         _inspectionController = gameObject.AddComponent<AssetInspectionController>();
-        _inspectionController.Asset = Asset;
-        _inspectionController.IsPolygon = IsPolygon;
-        _inspectionController.IsLineString = IsLineString;
-        _inspectionController.LineStringCoordinates = LineStringCoordinates;
+        _inspectionController.AssetController = this;
         _inspectionController.Visible = false; // non-visible assets to start
         _inspectionController.enabled = false; // also don't bother running
 
         // defect controller, invisible by default
         _defectController = gameObject.AddComponent<AssetDefectController>();
-        _defectController.Asset = Asset;
-        _defectController.IsPolygon = IsPolygon;
-        _defectController.IsLineString = IsLineString;
-        _defectController.LineStringCoordinates = LineStringCoordinates;
+        _defectController.AssetController = this;
         _defectController.Visible = false; // non-visible assets to start
         _defectController.Clear = false;
         _defectController.enabled = false; // also don't bother running
         
         // job controller, invisible by default
         _jobController = gameObject.AddComponent<AssetJobController>();
-        _jobController.Asset = Asset;
-        _jobController.IsPolygon = IsPolygon;
-        _jobController.IsLineString = IsLineString;
-        _jobController.LineStringCoordinates = LineStringCoordinates;
+        _jobController.AssetController = this;
         _jobController.Visible = false; // non-visible assets to start
         _jobController.enabled = false; // also don't bother running
     }
@@ -84,6 +84,14 @@ public class AssetController : MonoBehaviour
         {
             // first time we go visible turn on the controller
             _defectController.enabled = true;
+        }
+    }
+
+    public void SetOutline(bool visible)
+    {
+        foreach (var outline in _outlines)
+        {
+            outline.enabled = visible;
         }
     }
 

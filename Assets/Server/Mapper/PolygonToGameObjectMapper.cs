@@ -4,6 +4,7 @@ using Assets.Server.Projection;
 using GeoAPI.Geometries;
 using GeoJSON.Net.Geometry;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -110,7 +111,7 @@ namespace Assets.Server.Mapper
             mesh.Optimize();
 
             // make a new game object, we will draw programatically
-            var assetGameObject = new GameObject();
+            var assetGameObject = new GameObject("AssetPoly");
 
             // make the filter including the mesh we made
             var filter = assetGameObject.AddComponent<MeshFilter>();
@@ -153,9 +154,14 @@ namespace Assets.Server.Mapper
 
             // add the asset controller
             var assetController = go.AddComponent<AssetController>();
-            assetController.Asset = assetGameObject;
+            assetController.Assets = new List<GameObject>
+            {
+                assetGameObject,
+                assetModelGameObject,
+            };
             assetController.IsLineString = false;
             assetController.IsPolygon = true;
+            assetController.PolygonsToTaskDefectAgainst = new List<GameObject> { assetModelGameObject };
             assetController.ItemId = asset.ItemId;
 
             // finally add the new object to the stage
