@@ -18,15 +18,15 @@ public class AssetDefectController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (AssetController.IsPolygon)
+        if (AssetController.Polys != null)
         {
             InitialisePolygon();
         }
-        else if (AssetController.IsLineString)
+        if (AssetController.LineCoordinates != null)
         {
             InitialiseLineString();
         }
-        else
+        if (AssetController.Points != null)
         {
             InitialisePoint();
         }
@@ -59,7 +59,7 @@ public class AssetDefectController : MonoBehaviour
 
     private void InitialisePoint()
     {
-        foreach (var asset in AssetController.Assets)
+        foreach (var asset in AssetController.Points)
         {
             // make an fx object on the game object template
             var go = Instantiate(GetRandomPrefab(), gameObject.transform);
@@ -79,14 +79,8 @@ public class AssetDefectController : MonoBehaviour
 
     private void InitialiseLineString()
     {
-        if (AssetController.LineStringCoordinates == null)
-        {
-            Debug.Log("cannot initialise asset defect controller, missing line string coordinates");
-            return;
-        }
-
         // get all the positions in the rendered line  
-        foreach (var line in AssetController.LineStringCoordinates)
+        foreach (var line in AssetController.LineCoordinates)
         {
             foreach (var position in line)
             {
@@ -102,7 +96,7 @@ public class AssetDefectController : MonoBehaviour
 
     private void InitialisePolygon()
     {
-        foreach (var asset in AssetController.Assets)
+        foreach (var asset in AssetController.Polys)
         {
             // make an fx object on the game object template
             var go = Instantiate(GetRandomPrefab(), gameObject.transform);

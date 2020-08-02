@@ -66,10 +66,18 @@ public class PlayerAssetHighlighter : MonoBehaviour
             // find any new hit
             if (Physics.Raycast(_playerCamera.transform.position, _playerCamera.transform.forward, out RaycastHit hit, 5f))
             {
-                if (hit.transform.parent != null && hit.transform.parent.TryGetComponent<AssetController>(out AssetController assetController))
+                if (hit.transform.parent != null)
                 {
-                    _lastHitAssetController = assetController;
-                    _lastHitAssetController.SetOutline(true);
+                    if (hit.transform.parent.TryGetComponent<AssetController>(out AssetController assetController))
+                    {
+                        _lastHitAssetController = assetController;
+                        _lastHitAssetController.SetOutline(true);
+                    }
+                    else if (hit.transform.parent.parent != null && hit.transform.parent.parent.TryGetComponent<AssetController>(out AssetController parentAssetController))
+                    {
+                        _lastHitAssetController = parentAssetController;
+                        _lastHitAssetController.SetOutline(true);
+                    }
                 }
             }
 

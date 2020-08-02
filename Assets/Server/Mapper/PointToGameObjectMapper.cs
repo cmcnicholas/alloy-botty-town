@@ -27,39 +27,49 @@ namespace Assets.Server.Mapper
             {
                 throw new Exception("Expected item model geometry to be of type Point");
             }
+
+            // make the game object
+            var go = CreateGameObjectForPoint(_prefabManager, StageCoordProjector, asset, itemPoint, out GameObject assetGameObject);
             
+            // setup the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Outlines = new List<GameObject> { assetGameObject };
+            assetController.Points = new List<GameObject> { assetGameObject };
+            assetController.ItemId = asset.ItemId;
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
+
+            return go;
+        }
+
+        // used for multi geom too
+        public static GameObject CreateGameObjectForPoint(PrefabManager prefabManager, StageCoordProjection stageCoordProjector, 
+            AssetModel asset, Point itemPoint, out GameObject assetGameObject)
+        {
             // calculate the world coordinates (metres) for the point
             var itemMetres = WebMercatorProjection.LatLonToMeters(itemPoint.Coordinates.Latitude, itemPoint.Coordinates.Longitude);
 
             // project the metres to the stage
-            var itemStageCoords = StageCoordProjector.MetresToStageCoordinate(itemMetres);
+            var itemStageCoords = stageCoordProjector.MetresToStageCoordinate(itemMetres);
 
             // outside of map?
             if (itemStageCoords == null)
             {
+                assetGameObject = null;
                 return null;
             }
 
-            // make the instance and move it to a position
+            // make the instance 
             var go = new GameObject();
-            
+
             // make a game object of the model and add the asset to the parent
-            GameObject assetGameObject = _prefabManager.CreateForAsset(asset);
+            assetGameObject = prefabManager.CreateForAsset(asset);
             assetGameObject.transform.parent = go.transform;
             assetGameObject.transform.localPosition = new Vector3(0, 0, 0);
 
-            // setup the asset controller
-            var assetController = go.AddComponent<AssetController>();
-            assetController.Assets = new List<GameObject> { assetGameObject };
-            assetController.IsLineString = false;
-            assetController.IsPolygon = false;
-            assetController.ItemId = asset.ItemId;
-
-            // move the outer game objec to the right spot
+            // move the outer game object to the right spot
             go.transform.position = new Vector3(itemStageCoords[0], 0, itemStageCoords[1]);
-
-            // finally add the new object to the stage
-            go.transform.parent = Stage.transform;
 
             return go;
         }

@@ -20,15 +20,15 @@ public class AssetJobController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (AssetController.IsPolygon)
+        if (AssetController.Polys != null)
         {
             InitialisePolygon();
         }
-        else if (AssetController.IsLineString)
+        if (AssetController.LineCoordinates != null)
         {
             InitialiseLineString();
         }
-        else
+        if (AssetController.Points != null)
         {
             InitialisePoint();
         }
@@ -50,7 +50,7 @@ public class AssetJobController : MonoBehaviour
 
     private void InitialisePoint()
     {
-        foreach (var asset in AssetController.Assets)
+        foreach (var asset in AssetController.Points)
         {
             // get the renderer and a prefab to create an instance of
             var mr = asset.GetComponent<MeshRenderer>();
@@ -63,11 +63,10 @@ public class AssetJobController : MonoBehaviour
             // add 1 around the asset
             var jobStuff = Instantiate(templatePrefab, gameObject.transform);
 
-            // rotate anywhere
-            jobStuff.transform.Rotate(0f, Random.Range(0f, 360f), 0f);
-
-            // now move the asset away by the extent
-            jobStuff.transform.Translate(expandedBounds.extents.x, JobPrefabOffsetY, 0f, Space.Self);
+            var centre = new Vector3(mr.bounds.center.x, JobPrefabOffsetY, mr.bounds.center.z);
+            jobStuff.transform.position = centre;
+            jobStuff.transform.RotateAround(centre, new Vector3(0f, 1f, 0f), Random.Range(0f, 360f));
+            jobStuff.transform.Translate(expandedBounds.extents.x, 0f, 0f);
 
             _gameObjects.Add(jobStuff);
         }
@@ -75,13 +74,7 @@ public class AssetJobController : MonoBehaviour
 
     private void InitialiseLineString()
     {
-        if (AssetController.LineStringCoordinates == null)
-        {
-            Debug.Log("cannot initialise asset job controller, missing line string coordinates");
-            return;
-        }
-
-        foreach (var line in AssetController.LineStringCoordinates)
+        foreach (var line in AssetController.LineCoordinates)
         {
             foreach (var position in line)
             {
@@ -95,13 +88,7 @@ public class AssetJobController : MonoBehaviour
 
     private void InitialisePolygon()
     {
-        if (AssetController.PolygonsToTaskDefectAgainst == null)
-        {
-            Debug.Log("cannot initialise asset job controller, missing polygons to task/defect against");
-            return;
-        }
-
-        foreach (var asset in AssetController.PolygonsToTaskDefectAgainst)
+        foreach (var asset in AssetController.Polys)
         {
             // get the renderer and a prefab to create an instance of
             var mr = asset.GetComponent<MeshRenderer>();

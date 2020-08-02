@@ -12,18 +12,14 @@ using UnityEngine.SceneManagement;
 public class SyncManager : MonoBehaviour
 {
     public GameObject PlayerController;
-    public GameObject PlayerCamera;
     public float MapSize;
     private LevelController _levelController;
-    private Camera _playerCamera;
 
     // Start is called before the first frame update
     void Start()
     {
         // get the level controller (for the store)
         _levelController = PlayerController.GetComponent<LevelController>();
-
-        _playerCamera = PlayerCamera.GetComponent<Camera>();
 
         // start loading stuff
         StartCoroutine(CoroutineDiff());
@@ -65,7 +61,7 @@ public class SyncManager : MonoBehaviour
             var stageCoordinateProjector = new StageCoordProjection(MapSize, stageCentroidMetres);
 
             // setup the prefab mapper (maps items to models of stuff)
-            var itemToGameObjectFactory = AssetToGameObjectFactory.Create(gameObject, stageCoordinateProjector, _playerCamera);
+            var itemToGameObjectFactory = AssetToGameObjectFactory.Create(gameObject, stageCoordinateProjector);
 
             while (true)
             {

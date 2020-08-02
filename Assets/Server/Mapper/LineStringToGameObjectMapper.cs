@@ -16,12 +16,10 @@ namespace Assets.Server.Mapper
     public class LineStringToGameObjectMapper : AssetToGameObjectMapperBase
     {
         private Material _roadMaterial;
-        private Camera _camera;
 
-        public LineStringToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, Material roadMaterial, Camera camera) : base(stage, stageCoordProjector)
+        public LineStringToGameObjectMapper(GameObject stage, StageCoordProjection stageCoordProjector, Material roadMaterial) : base(stage, stageCoordProjector)
         {
             _roadMaterial = roadMaterial;
-            _camera = camera;
         }
 
         public override GameObject CreateGameObjectForAsset(AssetModel asset)
@@ -33,6 +31,29 @@ namespace Assets.Server.Mapper
                 throw new Exception("Expected item model geometry to be of type LineString");
             }
 
+            // make the game object
+            var go = CreateGameObjectForLineString(StageCoordProjector, _roadMaterial, asset, itemLineString, out GameObject assetGameObject, out List<Vector3> lineCoordinates);
+
+            // add the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Outlines = new List<GameObject> { assetGameObject };
+            assetController.LineCoordinates = new List<List<Vector3>> { lineCoordinates };
+            assetController.ItemId = asset.ItemId;
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
+
+            return go;
+        }
+
+        // used for multi geom too
+        public static GameObject CreateGameObjectForLineString(StageCoordProjection stageCoordProjector, Material roadMaterial,
+            AssetModel asset, LineString itemLineString, out GameObject assetGameObject, out List<Vector3> lineCoordinates)
+        {
+            // set to null (reassign later)
+            assetGameObject = null;
+            lineCoordinates = null;
+
             // check we have enough coordinates
             int coordinateCount = itemLineString.Coordinates.Count;
             if (coordinateCount <= 1)
@@ -42,7 +63,7 @@ namespace Assets.Server.Mapper
 
             // get the coordinates in the game world of the line string, we use 2d vector as all our lines are flat
             // alloy api never gives us 3d coords
-            var lineCoordinates = new Coordinate[coordinateCount];
+            var lineGameCoordinates = new Coordinate[coordinateCount];
             for (int i = 0; i < coordinateCount; i++)
             {
                 // calculate the world coordinates (metres) for the point in the linestring
@@ -50,7 +71,7 @@ namespace Assets.Server.Mapper
                 var coordinateMetres = WebMercatorProjection.LatLonToMeters(coordinate.Latitude, coordinate.Longitude);
 
                 // project the metres to the stage
-                var itemStageCoords = StageCoordProjector.MetresToStageCoordinate(coordinateMetres);
+                var itemStageCoords = stageCoordProjector.MetresToStageCoordinate(coordinateMetres);
 
                 // outside of map?
                 if (itemStageCoords == null)
@@ -58,11 +79,14 @@ namespace Assets.Server.Mapper
                     return null;
                 }
 
-                lineCoordinates[i] = new Coordinate(itemStageCoords[0], itemStageCoords[1]);
+                lineGameCoordinates[i] = new Coordinate(itemStageCoords[0], itemStageCoords[1]);
             }
 
+            // set output variable, we use these to draw particle effects and inspection/jobs etc.
+            lineCoordinates = lineGameCoordinates.Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y)).ToList();
+
             // using net topology suite to buffer the linestring by game units (create a poly from the line)
-            var gameCoordLineString = new NetTopologySuite.Geometries.LineString(lineCoordinates);
+            var gameCoordLineString = new NetTopologySuite.Geometries.LineString(lineGameCoordinates);
             var bufferedPolygon = gameCoordLineString.Buffer(5.0, GeoAPI.Operations.Buffer.BufferStyle.CapSquare);
 
             // calculate the 3d vertices, these are lifted by a set value off the game floor plane
@@ -108,7 +132,7 @@ namespace Assets.Server.Mapper
             mesh.Optimize();
 
             // make a new game object, we will draw programatically
-            var assetGameObject = new GameObject("Asset");
+            assetGameObject = new GameObject("Asset");
 
             // make the filter including the mesh we made
             var filter = assetGameObject.AddComponent<MeshFilter>();
@@ -116,34 +140,20 @@ namespace Assets.Server.Mapper
 
             // the way we render the poly
             var renderer = assetGameObject.AddComponent<MeshRenderer>();
-            renderer.material = _roadMaterial;
+            renderer.material = roadMaterial;
             renderer.material.color = colour;
 
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
             var collider = assetGameObject.AddComponent<MeshCollider>();
             collider.sharedMesh = mesh;
             collider.enabled = true;
-            
+
             // wrap the drawn game object "Asset" in an empty container, we will attach the asset controller
             // to this just like the item prefabs
             var go = new GameObject();
 
             // add the asset to the container
             assetGameObject.transform.parent = go.transform;
-
-            // add the asset controller
-            var assetController = go.AddComponent<AssetController>();
-            assetController.Assets = new List<GameObject> { assetGameObject };
-            assetController.IsLineString = true;
-            assetController.LineStringCoordinates = new List<List<Vector3>>
-            {
-                // only one line string here
-                lineCoordinates.Select(c => new Vector3((float)c.X, 0.01f /* off the floor */, (float)c.Y)).ToList(),
-            };
-            assetController.ItemId = asset.ItemId;
-
-            // finally add the new object to the stage
-            go.transform.parent = Stage.transform;
 
             return go;
         }

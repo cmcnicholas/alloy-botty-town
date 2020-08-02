@@ -35,9 +35,12 @@ public class DefectSpawner : MonoBehaviour
             var hitColliders = Physics.OverlapSphere(transform.position, Random.Range(ApplicationGlobals.DefectSpawnMinRange, ApplicationGlobals.DefectSpawnMaxRange));
             var assetControllers = hitColliders.
                 // get all the asset controller components off the hits (if possible)
-                Select(h => h.transform.parent?.GetComponent<AssetController>()).
+                // we check parent, and parents parent (for multi geom)
+                Select(h => h.transform.parent?.GetComponent<AssetController>() ?? h.transform.parent?.parent?.GetComponent<AssetController>()).
                 // filter out hits with no controller
                 Where(a => a != null).
+                // unique 
+                Distinct().
                 // filter out blacklisted items
                 Where(a => !_levelController.GameStore.IsBlacklistedItemId(a.ItemId)).
                 ToList();
@@ -50,7 +53,7 @@ public class DefectSpawner : MonoBehaviour
             }
 
             // pick a random hit
-            var hit = assetControllers[Random.Range(0, assetControllers.Count)];
+            var hit = assetControllers[Random.Range(0, assetControllers.Count - 1)];
             
             // make a temp defect (we may create it later)
             _levelController.GameStore.AddTempDefect(new TempDefectModel(hit.ItemId, Guid.NewGuid().ToString()));

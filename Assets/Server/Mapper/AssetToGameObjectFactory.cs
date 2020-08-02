@@ -11,7 +11,7 @@ namespace Assets.Server.Mapper
         /// <summary>
         /// creates the factory, performing initialisation for the mappers
         /// </summary>
-        public static AssetToGameObjectFactory Create(GameObject stage, StageCoordProjection stageCoordProjector, Camera playerCamera)
+        public static AssetToGameObjectFactory Create(GameObject stage, StageCoordProjection stageCoordProjector)
         {
             // load the road material
             var roadMaterial = Resources.Load("Materials/Road") as Material;
@@ -21,8 +21,12 @@ namespace Assets.Server.Mapper
             // create the mappers
             var mappers = new Dictionary<GeoJSONObjectType, AssetToGameObjectMapperBase>();
             mappers[GeoJSONObjectType.Point] = new PointToGameObjectMapper(stage, stageCoordProjector, prefabManager);
-            mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial, playerCamera);
+            mappers[GeoJSONObjectType.MultiPoint] = new MultiPointToGameObjectMapper(stage, stageCoordProjector, prefabManager);
+            mappers[GeoJSONObjectType.LineString] = new LineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
+            mappers[GeoJSONObjectType.MultiLineString] = new MultiLineStringToGameObjectMapper(stage, stageCoordProjector, roadMaterial);
             mappers[GeoJSONObjectType.Polygon] = new PolygonToGameObjectMapper(stage, stageCoordProjector, prefabManager, roadMaterial);
+            mappers[GeoJSONObjectType.MultiPolygon] = new MultiPolygonToGameObjectMapper(stage, stageCoordProjector, prefabManager, roadMaterial);
+            mappers[GeoJSONObjectType.GeometryCollection] = new GeometryCollectionToGameObjectMapper(stage, stageCoordProjector, prefabManager, roadMaterial, roadMaterial);
 
             return new AssetToGameObjectFactory(mappers);
         }

@@ -1,6 +1,5 @@
 ﻿using cakeslice;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -12,11 +11,10 @@ using UnityEngine;
 /// </summary>
 public class AssetController : MonoBehaviour
 {
-    public List<GameObject> Assets;
-    public bool IsLineString;
-    public IList<List<Vector3>> LineStringCoordinates;
-    public bool IsPolygon;
-    public List<GameObject> PolygonsToTaskDefectAgainst;
+    public List<GameObject> Outlines; // objects we want to outline
+    public List<GameObject> Points; // points we want to attach models of defects/jobs etc. to
+    public List<List<Vector3>> LineCoordinates; // lines we want to attach models of defects/jobs etc. to (we need centreline)
+    public List<GameObject> Polys; // polys we want to attach models of defects/jobs etc. to
     public string ItemId;
     private AssetJobController _jobController;
     private AssetInspectionController _inspectionController;
@@ -31,12 +29,13 @@ public class AssetController : MonoBehaviour
     void Start()
     {
         // add the outline component
-        _outlines = Assets.Select(asset =>
+        _outlines = new List<Outline>();
+        foreach (var toOutline in Outlines)
         {
-            var outline = asset.AddComponent<Outline>();
+            var outline = toOutline.AddComponent<Outline>();
             outline.enabled = false;
-            return outline;
-        }).ToList();
+            _outlines.Add(outline);
+        }
 
         // inspection controller, invisible by default
         _inspectionController = gameObject.AddComponent<AssetInspectionController>();

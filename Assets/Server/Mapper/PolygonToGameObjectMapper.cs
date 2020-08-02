@@ -34,6 +34,33 @@ namespace Assets.Server.Mapper
                 throw new Exception("Expected item model geometry to be of type Polygon");
             }
 
+            // make the game object
+            var go = CreateGameObjectForPolygon(_prefabManager, StageCoordProjector, _groundMaterial, asset, itemPolygon, 
+                out GameObject assetGameObject, out GameObject assetModelGameObject);
+            
+            // add the asset controller
+            var assetController = go.AddComponent<AssetController>();
+            assetController.Outlines = new List<GameObject>
+            {
+                assetGameObject,
+                assetModelGameObject,
+            };
+            assetController.Polys = new List<GameObject> { assetModelGameObject }; // only the model to add defects etc. to
+            assetController.ItemId = asset.ItemId;
+
+            // finally add the new object to the stage
+            go.transform.parent = Stage.transform;
+
+            return go;
+        }
+
+        // used for multi geom too
+        public static GameObject CreateGameObjectForPolygon(PrefabManager prefabManager, StageCoordProjection stageCoordProjector,
+            Material groundMaterial, AssetModel asset, Polygon itemPolygon, out GameObject assetGameObject, out GameObject assetModelGameObject)
+        {
+            assetGameObject = null;
+            assetModelGameObject = null;
+
             // if no polygons then return
             if (itemPolygon.Coordinates.Count == 0)
             {
@@ -67,7 +94,7 @@ namespace Assets.Server.Mapper
                 var coordinateMetres = WebMercatorProjection.LatLonToMeters(coordinate.Latitude, coordinate.Longitude);
 
                 // project the metres to the stage
-                var itemStageCoords = StageCoordProjector.MetresToStageCoordinate(coordinateMetres);
+                var itemStageCoords = stageCoordProjector.MetresToStageCoordinate(coordinateMetres);
 
                 // outside of map?
                 if (itemStageCoords == null)
@@ -89,8 +116,8 @@ namespace Assets.Server.Mapper
             var triangulator = new Triangulator(Array.ConvertAll<Vector3, Vector2>(vertices, v => new Vector2(v.x, v.z)));
 
             // get the per design colour or the default
-            var colour = ApplicationGlobals.MeshColourMapping.ContainsKey(asset.DesignCode) ? 
-                ApplicationGlobals.MeshColourMapping[asset.DesignCode] : 
+            var colour = ApplicationGlobals.MeshColourMapping.ContainsKey(asset.DesignCode) ?
+                ApplicationGlobals.MeshColourMapping[asset.DesignCode] :
                 ApplicationGlobals.MeshColourDefault;
 
             // Generate a color for each vertex
@@ -111,7 +138,7 @@ namespace Assets.Server.Mapper
             mesh.Optimize();
 
             // make a new game object, we will draw programatically
-            var assetGameObject = new GameObject("AssetPoly");
+            assetGameObject = new GameObject("AssetPoly");
 
             // make the filter including the mesh we made
             var filter = assetGameObject.AddComponent<MeshFilter>();
@@ -119,7 +146,7 @@ namespace Assets.Server.Mapper
 
             // the way we render the poly
             var renderer = assetGameObject.AddComponent<MeshRenderer>();
-            renderer.material = _groundMaterial;
+            renderer.material = groundMaterial;
             renderer.material.color = colour;
 
             // use the above mesh for the mesh collider so we can interact with it e.g. look at
@@ -132,7 +159,7 @@ namespace Assets.Server.Mapper
 
             // add the asset to the container
             assetGameObject.transform.parent = go.transform;
-            
+
             // now we start making the model to put on top of our poly
 
             // generate a polygon in world coordinates
@@ -148,24 +175,9 @@ namespace Assets.Server.Mapper
             var polygon = new NetTopologySuite.Geometries.Polygon(new NetTopologySuite.Geometries.LinearRing(polygonCoords));
 
             // move the asset to the correct position and add to the parent
-            GameObject assetModelGameObject = _prefabManager.CreateForAsset(asset);
+            assetModelGameObject = prefabManager.CreateForAsset(asset);
             assetModelGameObject.transform.position = new Vector3((float)polygon.Centroid.X, 0.01f, (float)polygon.Centroid.Y);
             assetModelGameObject.transform.parent = go.transform;
-
-            // add the asset controller
-            var assetController = go.AddComponent<AssetController>();
-            assetController.Assets = new List<GameObject>
-            {
-                assetGameObject,
-                assetModelGameObject,
-            };
-            assetController.IsLineString = false;
-            assetController.IsPolygon = true;
-            assetController.PolygonsToTaskDefectAgainst = new List<GameObject> { assetModelGameObject };
-            assetController.ItemId = asset.ItemId;
-
-            // finally add the new object to the stage
-            go.transform.parent = Stage.transform;
 
             return go;
         }

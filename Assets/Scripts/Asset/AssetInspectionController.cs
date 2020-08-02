@@ -19,15 +19,15 @@ public class AssetInspectionController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (AssetController.IsPolygon)
+        if (AssetController.Polys != null)
         {
             InitialisePolygon();
         }
-        else if (AssetController.IsLineString)
+        if (AssetController.LineCoordinates != null)
         {
             InitialiseLineString();
         }
-        else
+        if (AssetController.Points != null)
         {
             InitialisePoint();
         }
@@ -49,7 +49,7 @@ public class AssetInspectionController : MonoBehaviour
 
     private void InitialisePoint()
     {
-        foreach (var asset in AssetController.Assets)
+        foreach (var asset in AssetController.Points)
         {
             // get the renderer and a prefab to create an instance of
             var mr = asset.GetComponent<MeshRenderer>();
@@ -58,10 +58,6 @@ public class AssetInspectionController : MonoBehaviour
             // expand the bounds of the asset
             var expandedBounds = new Bounds(mr.bounds.center, mr.bounds.size);
             expandedBounds.Expand(3f);
-
-            // get the expanded min/max
-            /*var expandedMin = expandedBounds.min - expandedBounds.center;
-            var expandedMax = expandedBounds.max - expandedBounds.center;*/
 
             // add 4 around the asset
             _gameObjects.Add(CreateBarrierFromTemplate(templatePrefab,
@@ -77,13 +73,7 @@ public class AssetInspectionController : MonoBehaviour
 
     private void InitialiseLineString()
     {
-        if (AssetController.LineStringCoordinates == null)
-        {
-            Debug.Log("cannot initialise asset inspection controller, missing line string coordinates");
-            return;
-        }
-
-        foreach (var line in AssetController.LineStringCoordinates)
+        foreach (var line in AssetController.LineCoordinates)
         {
             foreach (var position in line)
             {
@@ -97,13 +87,13 @@ public class AssetInspectionController : MonoBehaviour
 
     private void InitialisePolygon()
     {
-        if (AssetController.PolygonsToTaskDefectAgainst == null)
+        if (AssetController.Polys == null)
         {
             Debug.Log("cannot initialise asset inspection controller, missing polygons to task/defect against");
             return;
         }
 
-        foreach (var asset in AssetController.PolygonsToTaskDefectAgainst)
+        foreach (var asset in AssetController.Polys)
         {
             // get the renderer and a prefab to create an instance of
             var mr = asset.GetComponent<MeshRenderer>();
