@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
+using Valve.VR;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class MainMenuController : MonoBehaviour
     public GameObject MainMenuTimeTrialButton;
     public GameObject MainMenuFreePlayButton;
     public GameObject AssetMenuCanvas;
+    public SteamVR_Action_Boolean MenuAction;
     private LevelController _levelController;
     private AssetMenuController _assetMenuController;
     private Button _mainMenuResumeButton;
@@ -37,7 +39,7 @@ public class MainMenuController : MonoBehaviour
         _mainMenuTimeTrialButton.interactable = ApplicationGlobals.ApiTokenVerified;
         _mainMenuFreePlayButton.interactable = ApplicationGlobals.ApiTokenVerified;
 
-        if (Input.GetKey("escape") && PlayerController.activeInHierarchy)
+        if ((Input.GetKey("escape") || MenuAction.GetState(SteamVR_Input_Sources.Any)) && PlayerController.activeInHierarchy)
         {
             // hide the asset menu
             _assetMenuController.CloseMenu();
@@ -49,6 +51,9 @@ public class MainMenuController : MonoBehaviour
 
     public void ShowMenu(bool paused)
     {
+        Debug.Log("Show main menu");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         // if paused, resume is allowed
         _mainMenuResumeButton.interactable = paused;
 
@@ -60,6 +65,9 @@ public class MainMenuController : MonoBehaviour
 
     public void OnResumePressed()
     {
+        Debug.Log("Main menu resume");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         PlayerController.SetActive(true);
         PlayerController.GetComponent<FirstPersonController>().SetLocked(false);
         MainMenuCamera.SetActive(false);
@@ -67,6 +75,9 @@ public class MainMenuController : MonoBehaviour
 
     public void OnFreePlayPressed()
     {
+        Debug.Log("Main menu free play");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         // reset the level and play
         _levelController.ResetFreePlay();
 
@@ -77,6 +88,9 @@ public class MainMenuController : MonoBehaviour
 
     public void OnTimeTrialPressed()
     {
+        Debug.Log("Main menu time trial");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         // reset the level and play
         _levelController.ResetTimeTrial();
 

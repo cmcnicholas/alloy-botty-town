@@ -88,6 +88,12 @@ public class AssetController : MonoBehaviour
 
     public void SetOutline(bool visible)
     {
+        // may be null due to raycast hits early on
+        if (_outlines == null)
+        {
+            return;
+        }
+
         foreach (var outline in _outlines)
         {
             outline.enabled = visible;

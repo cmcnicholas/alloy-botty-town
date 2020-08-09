@@ -18,6 +18,7 @@ public class AssetMenuController : MonoBehaviour
     public GameObject AlloyMobile;
     public GameObject AssetTitleText;
     public GameObject AssetSubtitleText;
+    public List<GameObject> VrControllers;
     private FirstPersonController _firstPersonController;
     private AlloyMobileController _alloyMobileController;
     private LevelController _levelController;
@@ -30,6 +31,9 @@ public class AssetMenuController : MonoBehaviour
     {
         // turn off the menu to begin
         AssetMenu.SetActive(false);
+
+        // disable the vr controllers
+        SetVrController(false);
 
         // get the first person controller
         _firstPersonController = PlayerController.GetComponent<FirstPersonController>();
@@ -63,6 +67,9 @@ public class AssetMenuController : MonoBehaviour
             return;
         }
 
+        // enable the vr controllers
+        SetVrController(true);
+
         // set the title/subtitle
         AssetTitleText.GetComponent<Text>().text = string.IsNullOrWhiteSpace(asset.Title) ? "NO SUBTITLE" : asset.Title;
         AssetSubtitleText.GetComponent<Text>().text = string.IsNullOrWhiteSpace(asset.Subtitle) ? "NO SUBTITLE" : asset.Subtitle;
@@ -93,6 +100,9 @@ public class AssetMenuController : MonoBehaviour
         _assetItemId = null;
         AssetMenu.SetActive(false);
         _firstPersonController.SetLocked(false);
+
+        // disable the vr controllers
+        SetVrController(false);
     }
 
     public void OnCompleteJobsPressed()
@@ -105,6 +115,10 @@ public class AssetMenuController : MonoBehaviour
 
         _working = true;
         AssetMenu.SetActive(false);
+
+        // disable the vr controllers
+        SetVrController(false);
+
         StartCoroutine(CompleteJobsForAsset());
 
         // select menu sound
@@ -121,6 +135,10 @@ public class AssetMenuController : MonoBehaviour
 
         _working = true;
         AssetMenu.SetActive(false);
+
+        // disable the vr controllers
+        SetVrController(false);
+
         StartCoroutine(CompleteInspectionsForAsset());
 
         // select menu sound
@@ -137,6 +155,10 @@ public class AssetMenuController : MonoBehaviour
 
         _working = true;
         AssetMenu.SetActive(false);
+
+        // disable the vr controllers
+        SetVrController(false);
+
         StartCoroutine(RegisterDefectForAsset());
 
         // select menu sound
@@ -350,5 +372,13 @@ public class AssetMenuController : MonoBehaviour
 
         // success sound!
         _levelSoundEffectsController.PlaySuccess();
+    }
+
+    private void SetVrController(bool enabled)
+    {
+        foreach (var controller in VrControllers)
+        {
+            controller.GetComponent<AssetMenuVrController>().enabled = enabled;
+        }
     }
 }

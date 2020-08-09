@@ -13,6 +13,7 @@ namespace Assets.Server
         public static string FatalError;
         public static bool ApiTokenVerified = false;
         public static float ReportingTime = 3f;
+        public static float? LastVrControllerPress;
 
         // the rest are loaded from the config.json file
         public static string ApiUrl;

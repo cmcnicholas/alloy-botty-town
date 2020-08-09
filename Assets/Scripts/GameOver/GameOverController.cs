@@ -72,6 +72,9 @@ public class GameOverController : MonoBehaviour
 
     public void ShowScreen()
     {
+        Debug.Log("Show Game Over");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         PlayerController.GetComponent<FirstPersonController>().SetLocked(true);
         PlayerController.SetActive(false);
         gameObject.SetActive(true);
@@ -79,12 +82,18 @@ public class GameOverController : MonoBehaviour
 
     public void OnLeavePressed()
     {
+        Debug.Log("Game Over Leave");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         // start the main menu screen
         MainMenu.GetComponent<MainMenuController>().ShowMenu(false);
     }
 
     public void OnSavePressed()
     {
+        Debug.Log("Game Over Save");
+        ApplicationGlobals.LastVrControllerPress = Time.time;
+
         if (string.IsNullOrWhiteSpace(_playerNameInputField.text))
         {
             return;
@@ -95,6 +104,150 @@ public class GameOverController : MonoBehaviour
 
         // save player name
         StartCoroutine(SaveScoreCoroutine(_playerNameInputField.text, _levelController.LevelScore));
+    }
+
+    public void OnKeyboardPressedQ()
+    {
+        _playerNameInputField.text += "Q";
+    }
+
+    public void OnKeyboardPressedW()
+    {
+        _playerNameInputField.text += "W";
+    }
+
+    public void OnKeyboardPressedE()
+    {
+        _playerNameInputField.text += "E";
+    }
+
+    public void OnKeyboardPressedR()
+    {
+        _playerNameInputField.text += "R";
+    }
+
+    public void OnKeyboardPressedT()
+    {
+        _playerNameInputField.text += "T";
+    }
+
+    public void OnKeyboardPressedY()
+    {
+        _playerNameInputField.text += "Y";
+    }
+
+    public void OnKeyboardPressedU()
+    {
+        _playerNameInputField.text += "U";
+    }
+
+    public void OnKeyboardPressedI()
+    {
+        _playerNameInputField.text += "I";
+    }
+
+    public void OnKeyboardPressedO()
+    {
+        _playerNameInputField.text += "O";
+    }
+
+    public void OnKeyboardPressedP()
+    {
+        _playerNameInputField.text += "P";
+    }
+
+    public void OnKeyboardPressedA()
+    {
+        _playerNameInputField.text += "A";
+    }
+
+    public void OnKeyboardPressedS()
+    {
+        _playerNameInputField.text += "S";
+    }
+
+    public void OnKeyboardPressedD()
+    {
+        _playerNameInputField.text += "D";
+    }
+
+    public void OnKeyboardPressedF()
+    {
+        _playerNameInputField.text += "F";
+    }
+
+    public void OnKeyboardPressedG()
+    {
+        _playerNameInputField.text += "G";
+    }
+
+    public void OnKeyboardPressedH()
+    {
+        _playerNameInputField.text += "H";
+    }
+
+    public void OnKeyboardPressedJ()
+    {
+        _playerNameInputField.text += "J";
+    }
+
+    public void OnKeyboardPressedK()
+    {
+        _playerNameInputField.text += "K";
+    }
+
+    public void OnKeyboardPressedL()
+    {
+        _playerNameInputField.text += "L";
+    }
+
+    public void OnKeyboardPressedZ()
+    {
+        _playerNameInputField.text += "Z";
+    }
+
+    public void OnKeyboardPressedX()
+    {
+        _playerNameInputField.text += "X";
+    }
+
+    public void OnKeyboardPressedC()
+    {
+        _playerNameInputField.text += "C";
+    }
+
+    public void OnKeyboardPressedV()
+    {
+        _playerNameInputField.text += "V";
+    }
+
+    public void OnKeyboardPressedB()
+    {
+        _playerNameInputField.text += "B";
+    }
+
+    public void OnKeyboardPressedN()
+    {
+        _playerNameInputField.text += "N";
+    }
+
+    public void OnKeyboardPressedM()
+    {
+        _playerNameInputField.text += "M";
+    }
+
+    public void OnKeyboardPressedSpace()
+    {
+        _playerNameInputField.text += " ";
+    }
+
+    public void OnKeyboardPressedBackspace()
+    {
+        if (_playerNameInputField.text == null || _playerNameInputField.text.Length == 0)
+        {
+            return;
+        }
+        _playerNameInputField.text = _playerNameInputField.text.Substring(0, _playerNameInputField.text.Length - 1);
     }
 
     private IEnumerator SaveScoreCoroutine(string playerName, int score)
